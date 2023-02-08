@@ -1,5 +1,7 @@
 package com.aliyun.libheif
 
+import android.graphics.Bitmap
+
 
 /**
  * how to use :
@@ -24,11 +26,22 @@ class HeifNative {
          * judge file is heic format or not
          * @param outSize output size
          * @param length  the length of effective file memory
-         * @param filebuf file pointer in memory
+         * @param fileBuf file pointer in memory
          * @return rgba byte, convenient to create a [android.graphics.Bitmap]
          */
         @JvmStatic
-        external fun toRgba(outSize: HeifSize?, length: Long, filebuf: ByteArray?): ByteArray?
+        external fun toRgba(outSize: HeifSize, length: Long, fileBuf: ByteArray, bitmap: Bitmap): ByteArray?
+
+
+        /**
+         * judge file is heic format or not
+         * @param index  input, select the index image which to be decoder, start with 0
+         * @param length  the length of effective file memory
+         * @param fileBuf file pointer in memory
+         * @return rgba byte, convenient to create a [android.graphics.Bitmap]
+         */
+        @JvmStatic
+        external fun imagesToRgba(index: Int, length: Long, fileBuf: ByteArray): ByteArray?
 
         /**
          * judge file is heic format or not
@@ -49,6 +62,6 @@ class HeifNative {
          * if false, outSize is not valid
          */
         @JvmStatic
-        external fun getInfo(outSize: HeifSize?, length: Long, filebuf: ByteArray?): Boolean
+        external fun getInfo(info: HeifInfo, length: Long, filebuf: ByteArray?): Boolean
     }
 }
