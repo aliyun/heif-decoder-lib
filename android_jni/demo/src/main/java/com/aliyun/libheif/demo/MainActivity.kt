@@ -41,7 +41,7 @@ class MainActivity : AppCompatActivity() {
             heifSize.height,
             Bitmap.Config.ARGB_8888)
 
-        val heifBuffer = HeifNative.toRgba(heifSize, fileBuffer.size.toLong(), fileBuffer, bitmap)
+        val heifBuffer = HeifNative.toRgba(fileBuffer.size.toLong(), fileBuffer, bitmap)
         image.setImageBitmap(bitmap)
     }
 }
