@@ -7,67 +7,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-///*
-// * Class:     com_aliyun_libheif_HeifNative
-// * Method:    encodeBitmap
-// * Signature: ([BIILjava/lang/String;)I
-// */
-//JNIEXPORT jint
-//
-//extern "C" jint Java_com_aliyun_libheif_HeifNative_encodeBitmap
-//  (JNIEnv *, jclass, jbyteArray, jint, jint, jstring);
-//
-///*
-// * Class:     com_aliyun_libheif_HeifNative
-// * Method:    encodeYUV
-// * Signature: ([BIILjava/lang/String;)I
-// */
-//JNIEXPORT jint
-//extern "C" jint Java_com_aliyun_libheif_HeifNative_encodeYUV
-//  (JNIEnv *, jclass, jbyteArray, jint, jint, jstring);
-//
-///*
-// * Class:     com_aliyun_libheif_HeifNative
-// * Method:    decodeHeif2RGBA
-// * Signature: (Lcom/aliyun/libheif/HeifSize;Ljava/lang/String;)[B
-// */
-//JNIEXPORT jbyteArray
-//
-//extern "C" jbyteArray Java_com_aliyun_libheif_HeifNative_decodeHeif2RGBA
-//  (JNIEnv *, jclass, jobject, jstring);
-//
-///*
-// * Class:     com_aliyun_libheif_HeifNative
-// * Method:    decodeHeif2RGBA_mem
-// * Signature: (Lcom/aliyun/libheif/HeifSize;Ljava/lang/String;)
-// */
-//JNIEXPORT jbyteArray
-//
-//extern "C" jbyteArray Java_com_aliyun_libheif_HeifNative_decodeHeif2RGBAMem
-//  (JNIEnv *, jclass, jobject, jlong, jbyteArray, jstring);
-//
-//
-///*
-// * Class:     com_aliyun_libheif_HeifNative
-// * Method:    isHeicImageAndGetInfo
-// * Signature: (Lcom/aliyun/libheif/HeifSize;Ljava/lang/String;)
-// */
-//JNIEXPORT jboolean
-//
-//extern "C" Java_com_aliyun_libheif_HeifNative_isHeicImageAndGetInfo
-//  (JNIEnv *env,jclass type, jobject outSize, jstring srcPath_); 
-//
-//
-///*
-// * Class:     com_aliyun_libheif_HeifNative
-// * Method:    isHeicImageAndGetInfoMem
-// * Signature: (Lcom/aliyun/libheif/HeifSize;Ljava/lang/String;)
-// */
-//JNIEXPORT jboolean 
-//
-//extern "C" Java_com_aliyun_libheif_HeifNative_isHeicImageAndGetInfoMem
-//  (JNIEnv *, jclass, jobject, jlong, jbyteArray);
-
 
 /*
  * Class:     com_aliyun_libheif_HeifNative
