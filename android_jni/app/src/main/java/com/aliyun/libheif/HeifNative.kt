@@ -24,13 +24,13 @@ class HeifNative {
 
         /**
          * judge file is heic format or not
-         * @param outSize output size
          * @param length  the length of effective file memory
          * @param fileBuf file pointer in memory
-         * @return rgba byte, convenient to create a [android.graphics.Bitmap]
+         * @bitmap 
+         * @return if false, decoder images failed
          */
         @JvmStatic
-        external fun toRgba(outSize: HeifSize, length: Long, fileBuf: ByteArray, bitmap: Bitmap): ByteArray?
+        external fun toRgba(length: Long, fileBuf: ByteArray, bitmap: Bitmap): Boolean
 
 
         /**
@@ -38,10 +38,10 @@ class HeifNative {
          * @param index  input, select the index image which to be decoder, start with 0
          * @param length  the length of effective file memory
          * @param fileBuf file pointer in memory
-         * @return rgba byte, convenient to create a [android.graphics.Bitmap]
+         * @return if false, decoder images failed
          */
         @JvmStatic
-        external fun imagesToRgba(index: Int, length: Long, fileBuf: ByteArray): ByteArray?
+        external fun imagesToRgba(index: Int, length: Long, fileBuf: ByteArray, bitmap: Bitmap): Boolean
 
         /**
          * judge file is heic format or not

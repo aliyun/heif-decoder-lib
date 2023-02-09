@@ -25,7 +25,7 @@ class HeifInfo {
         val newframe = HeifSize()
         newframe.width = width
         newframe.height = height
-        newframe.bitDepth = bitdepth
+//        newframe.bitDepth = bitdepth
         frameList.add(newframe)
     }
 }
