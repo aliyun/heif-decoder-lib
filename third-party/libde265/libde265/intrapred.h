@@ -90,14 +90,14 @@ void decode_intra_prediction(de265_image* img,
                              acceleration_functions* acceleration,  
                              int xB0,int yB0,
                              enum IntraPredMode intraPredMode,
-                             int nT, int cIdx);
+                             int nT, int log2TrafoSize, int cIdx);
 
 // TODO: remove this
 template <class pixel_t> void decode_intra_prediction(de265_image* img,
                                                       acceleration_functions* acceleration,  
                                                       int xB0,int yB0,
                                                       enum IntraPredMode intraPredMode,
-                                                      pixel_t* dst, int nT, int cIdx);
+                                                      pixel_t* dst, int nT, int log2TrafoSize, int cIdx);
 
 
 
@@ -633,16 +633,16 @@ void intra_border_computer<pixel_t>::fill_from_image_non_constraned_intra(){
   int xBLuma = xB * SubWidth;
   int yBLuma = yB * SubHeight;
 
-  int currBlockAddr = pps->MinTbAddrZS[ (xBLuma>>sps->Log2MinTrafoSize) +
-                                        (yBLuma>>sps->Log2MinTrafoSize) * sps->PicWidthInTbsY ];
-
-  aval_bottom_left = availableLeft && currBlockAddr > pps->MinTbAddrZS[ (((xB-1)*SubWidth )>>sps->Log2MinTrafoSize) +
-                                           (((yB+nT)*SubHeight)>>sps->Log2MinTrafoSize)* sps->PicWidthInTbsY ];
+  int currBlockAddr = pps->MinTbAddrZS[ (xBLuma>>sps->Log2MinTrafoSize) + (yBLuma>>sps->Log2MinTrafoSize) * sps->PicWidthInTbsY ];
+  int bottom_left_HeightAddr = (((yB+nT)*SubHeight)>>sps->Log2MinTrafoSize);
+  if(bottom_left_HeightAddr >= sps->PicHeightInTbsY)
+    aval_bottom_left = false;
+  else
+    aval_bottom_left = availableLeft && currBlockAddr > pps->MinTbAddrZS[ (((xB-1)*SubWidth )>>sps->Log2MinTrafoSize) + bottom_left_HeightAddr * sps->PicWidthInTbsY ];
   aval_left = availableLeft;
   aval_top_left = availableTopLeft;
   aval_top = availableTop;
-  aval_top_right = availableTopRight && currBlockAddr > pps->MinTbAddrZS[ (((xB+nT)*SubWidth )>>sps->Log2MinTrafoSize) +
-                                           (((yB-1)*SubHeight)>>sps->Log2MinTrafoSize)* sps->PicWidthInTbsY ];
+  aval_top_right = availableTopRight && currBlockAddr > pps->MinTbAddrZS[ (((xB+nT)*SubWidth )>>sps->Log2MinTrafoSize) + (((yB-1)*SubHeight)>>sps->Log2MinTrafoSize)* sps->PicWidthInTbsY ];
 
   sps = &img->get_sps();
   int bottom_left_size = (std::min((yB + 2 * nT)*SubHeight, sps->pic_height_in_luma_samples) - (yB + nT)*SubHeight) >> (SubHeight-1);
@@ -671,58 +671,168 @@ void intra_border_computer<pixel_t>::fill_from_image_non_constraned_intra(){
     out_border[0] = src[-1 - stride];
   }
 
-  if (aval_top)
+  if (sizeof(pixel_t)==1)
   {
-    memcpy(out_border+1, src-stride, nT*sizeof(pixel_t)); 
-  }
+    if (aval_top)
+    {
+      memcpy(out_border+1, src-stride, nT*sizeof(pixel_t)); 
+    }
 
-  if(aval_top_right)
+    if(aval_top_right)
+    {
+      memcpy(out_border+1+nT, src-stride+nT, top_right_size*sizeof(pixel_t)); 
+      memset(out_border+1+nT+top_right_size, src[nT+top_right_size-1-stride], (nT-top_right_size)*sizeof(pixel_t));
+    }
+
+    if(!aval_bottom_left)
+    {
+      if(aval_left)
+      {
+        memset(out_border-2*nT, out_border[-nT], nT*sizeof(pixel_t));
+      }
+      else if(aval_top_left)
+      {
+        memset(out_border-2*nT, out_border[-1], 2*nT*sizeof(pixel_t));
+        aval_left = true;
+      }
+      else if(aval_top)
+      {
+        out_border[0] = out_border[1];
+        memset(out_border-2*nT, out_border[0], 2*nT*sizeof(pixel_t));
+        aval_top_left = true;
+        aval_left    = true;
+      }
+      else if(aval_top_right)
+      {
+        memset(out_border+1, out_border[nT+1], nT*sizeof(pixel_t));
+        out_border[0] = out_border[nT+1];
+        memset(out_border-2*nT, out_border[0], 2*nT*sizeof(pixel_t));
+        aval_top = true;
+        aval_top_left = true;
+        aval_left    = true;
+      }
+      else
+      {
+        out_border[0] = (1 << (bit_depth - 1));
+        memset(out_border+1, out_border[0], 2*nT*sizeof(pixel_t));
+        memset(out_border-2*nT, out_border[0], 2*nT*sizeof(pixel_t));
+      }
+    }
+    if(!aval_left)
+      memset(out_border-nT, out_border[-nT-1], nT*sizeof(pixel_t));
+    if(!aval_top_left)
+      out_border[0] = out_border[-1];
+    if(!aval_top)
+      memset(out_border+1, out_border[0], nT*sizeof(pixel_t));
+    if(!aval_top_right)
+      memset(out_border+nT+1, out_border[nT],nT*sizeof(pixel_t));
+  }
+  else
   {
-    memcpy(out_border+1+nT, src-stride+nT, top_right_size*sizeof(pixel_t)); 
-    memset(out_border+1+nT+top_right_size, src[nT+top_right_size-1-stride], (nT-top_right_size)*sizeof(pixel_t));
-    // for (int y = 0; y < nT-top_right_size; y++)
-    // {
-    //   out_border[nT+top_right_size+y] = src[nT+top_right_size-1-stride];
-    // }
-  }
+    if (aval_top)
+    {
+      memcpy(out_border+1, src-stride, nT*sizeof(pixel_t)); 
+    }
 
-  if(!aval_bottom_left){
-    if(aval_left){
-      memset(out_border-2*nT, out_border[-nT], nT*sizeof(pixel_t));
+    if(aval_top_right)
+    {
+      memcpy(out_border+1+nT, src-stride+nT, top_right_size*sizeof(pixel_t)); 
+      //memset(out_border+1+nT+top_right_size, src[nT+top_right_size-1-stride], (nT-top_right_size)*sizeof(pixel_t));
+      for (int i = 0; i < nT-top_right_size; i++)
+      {
+        out_border[1+nT+top_right_size+i] = src[nT+top_right_size-1-stride];
+      }
     }
-    else if(aval_top_left){
-      memset(out_border-2*nT, out_border[-1], 2*nT*sizeof(pixel_t));
-      aval_left = true;
-    }
-    else if(aval_top){
-      out_border[0] = out_border[1];
-      memset(out_border-2*nT, out_border[0], 2*nT*sizeof(pixel_t));
-      aval_top_left = true;
-      aval_left    = true;
-    }
-    else if(aval_top_right){
-      memset(out_border+1, out_border[nT+1], nT*sizeof(pixel_t));
-      out_border[0] = out_border[nT+1];
-      memset(out_border-2*nT, out_border[0], 2*nT*sizeof(pixel_t));
-      aval_top = true;
-      aval_top_left = true;
-      aval_left    = true;
-    }
-    else{
-      out_border[0] = (1 << (bit_depth - 1));
-      memset(out_border+1, out_border[0], 2*nT*sizeof(pixel_t));
-      memset(out_border-2*nT, out_border[0], 2*nT*sizeof(pixel_t));
-    }
-  }
-  if(!aval_left)
-    memset(out_border-nT, out_border[-nT-1], nT*sizeof(pixel_t));
-  if(!aval_top_left)
-    out_border[0] = out_border[-1];
-  if(!aval_top)
-    memset(out_border+1, out_border[0], nT*sizeof(pixel_t));
-  if(!aval_top_right)
-    memset(out_border+nT+1, out_border[nT],nT*sizeof(pixel_t));
 
+    if(!aval_bottom_left)
+    {
+      if(aval_left)
+      {
+        //memset(out_border-2*nT, out_border[-nT], nT*sizeof(pixel_t));
+        for (int i = 0; i < nT; i++)
+        {
+          out_border[-2*nT+i] = out_border[-nT];
+        }
+      }
+      else if(aval_top_left)
+      {
+        //memset(out_border-2*nT, out_border[-1], 2*nT*sizeof(pixel_t));
+        for (int i = 0; i < 2*nT; i++)
+        {
+          out_border[-2*nT+i] = out_border[-1];
+        }
+        aval_left = true;
+      }
+      else if(aval_top)
+      {
+        out_border[0] = out_border[1];
+        //memset(out_border-2*nT, out_border[0], 2*nT*sizeof(pixel_t));
+        for (int i = 0; i < 2*nT; i++)
+        {
+          out_border[-2*nT+i] = out_border[0];
+        }
+        aval_top_left = true;
+        aval_left    = true;
+      }
+      else if(aval_top_right)
+      {
+        //memset(out_border+1, out_border[nT+1], nT*sizeof(pixel_t));
+        for (int i = 0; i < nT; i++)
+        {
+          out_border[1+i] = out_border[nT+1];
+        }
+        out_border[0] = out_border[nT+1];
+        //memset(out_border-2*nT, out_border[0], 2*nT*sizeof(pixel_t));
+        for (int i = 0; i < 2*nT; i++)
+        {
+          out_border[-2*nT+i] = out_border[0];
+        }
+        aval_top = true;
+        aval_top_left = true;
+        aval_left    = true;
+      }
+      else
+      {
+        out_border[0] = (1 << (bit_depth - 1));
+        //memset(out_border+1, out_border[0], 2*nT*sizeof(pixel_t));
+        for (int i = 0; i < 2*nT; i++)
+        {
+          out_border[1+i] = out_border[0];
+        }
+        //memset(out_border-2*nT, out_border[0], 2*nT*sizeof(pixel_t));
+        for (int i = 0; i < 2*nT; i++)
+        {
+          out_border[-2*nT+i] = out_border[0];
+        }
+      }
+    }
+    if(!aval_left)
+    {
+      //memset(out_border-nT, out_border[-nT-1], nT*sizeof(pixel_t));
+      for (int i = 0; i < nT; i++)
+      {
+        out_border[-nT+i] = out_border[-nT-1];
+      }
+    }
+    if(!aval_top_left)
+      out_border[0] = out_border[-1];
+    if(!aval_top)
+    {
+      //memset(out_border+1, out_border[0], nT*sizeof(pixel_t));
+      for (int i = 0; i < nT; i++)
+      {
+        out_border[1+i] = out_border[0];
+      }
+    }
+    if(!aval_top_right)
+    {
+      //memset(out_border+nT+1, out_border[nT],nT*sizeof(pixel_t));
+      for (int i = 0; i < nT; i++)
+      {
+        out_border[nT+1+i] = out_border[nT];
+      }
+    }    
+  }
 }
 #endif
 

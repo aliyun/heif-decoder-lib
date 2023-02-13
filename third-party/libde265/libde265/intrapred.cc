@@ -297,7 +297,7 @@ void decode_intra_prediction_internal(de265_image* img,
                                       int xB0,int yB0,
                                       enum IntraPredMode intraPredMode,
                                       pixel_t* dst, int dstStride,
-                                      int nT, int cIdx)
+                                      int nT, int log2TrafoSize, int cIdx)
 {
   pixel_t  border_pixels_mem[4*MAX_INTRA_PRED_BLOCK_SIZE+1];
   pixel_t* border_pixels = &border_pixels_mem[2*MAX_INTRA_PRED_BLOCK_SIZE];
@@ -313,10 +313,10 @@ void decode_intra_prediction_internal(de265_image* img,
 
   switch (intraPredMode) {
   case INTRA_PLANAR:
-    acceleration->intra_prediction_planar<pixel_t>(dst,dstStride, nT,cIdx, border_pixels);
+    acceleration->intra_prediction_planar<pixel_t>(dst,dstStride, nT, log2TrafoSize, cIdx, border_pixels);
     break;
   case INTRA_DC:
-    acceleration->intra_pred_dc<pixel_t>(dst, dstStride, nT, cIdx, border_pixels);
+    acceleration->intra_pred_dc<pixel_t>(dst, dstStride, nT, log2TrafoSize, cIdx, border_pixels);
     break;
   default:
     {
@@ -338,7 +338,7 @@ void decode_intra_prediction(de265_image* img,
                              acceleration_functions* acceleration,  
                              int xB0,int yB0,
                              enum IntraPredMode intraPredMode,
-                             int nT, int cIdx)
+                             int nT, int log2TrafoSize, int cIdx)
 {
   logtrace(LogIntraPred,"decode_intra_prediction xy0:%d/%d mode=%d nT=%d, cIdx=%d\n",
            xB0,yB0, intraPredMode, nT,cIdx);
@@ -351,13 +351,13 @@ void decode_intra_prediction(de265_image* img,
     decode_intra_prediction_internal<uint16_t>(img,acceleration,xB0,yB0, intraPredMode,
                                                img->get_image_plane_at_pos_NEW<uint16_t>(cIdx,xB0,yB0),
                                                img->get_image_stride(cIdx),
-                                               nT,cIdx);
+                                               nT, log2TrafoSize, cIdx);
   }
   else {
     decode_intra_prediction_internal<uint8_t>(img,acceleration,xB0,yB0, intraPredMode,
                                               img->get_image_plane_at_pos_NEW<uint8_t>(cIdx,xB0,yB0),
                                               img->get_image_stride(cIdx),
-                                              nT,cIdx);
+                                              nT, log2TrafoSize, cIdx);
   }
 }
 
@@ -367,11 +367,11 @@ template <> void decode_intra_prediction<uint8_t>(de265_image* img,
                                                   acceleration_functions* acceleration,  
                                                   int xB0,int yB0,
                                                   enum IntraPredMode intraPredMode,
-                                                  uint8_t* dst, int nT, int cIdx)
+                                                  uint8_t* dst, int nT, int log2TrafoSize, int cIdx)
 {
     decode_intra_prediction_internal<uint8_t>(img,acceleration,xB0,yB0, intraPredMode,
                                               dst,nT,
-                                              nT,cIdx);
+                                              nT,log2TrafoSize, cIdx);
 }
 
 
@@ -380,9 +380,9 @@ template <> void decode_intra_prediction<uint16_t>(de265_image* img,
                                                    acceleration_functions* acceleration,  
                                                    int xB0,int yB0,
                                                    enum IntraPredMode intraPredMode,
-                                                   uint16_t* dst, int nT, int cIdx)
+                                                   uint16_t* dst, int nT, int log2TrafoSize, int cIdx)
 {
   decode_intra_prediction_internal<uint16_t>(img,acceleration,xB0,yB0, intraPredMode,
                                              dst,nT,
-                                             nT,cIdx);
+                                             nT, log2TrafoSize, cIdx);
 }

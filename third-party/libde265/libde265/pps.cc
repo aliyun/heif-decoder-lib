@@ -589,6 +589,16 @@ void pic_parameter_set::set_derived_values(const seq_parameter_set* sps)
   MinTbAddrZS  .resize(sps->PicSizeInTbsY );
 
 
+if((num_tile_columns==1) && (num_tile_rows==1))
+{
+  for (int ctbAddrRS=0 ; ctbAddrRS < sps->PicSizeInCtbsY ; ctbAddrRS++)
+  {
+    CtbAddrRStoTS[ctbAddrRS] = CtbAddrTStoRS[ctbAddrRS] = ctbAddrRS;
+    TileId  [ctbAddrRS] = TileIdRS[ctbAddrRS] = 0;
+  }
+}
+else
+{
   // raster scan (RS) <-> tile scan (TS) conversion
   for (int ctbAddrRS=0 ; ctbAddrRS < sps->PicSizeInCtbsY ; ctbAddrRS++)
     {
@@ -665,9 +675,10 @@ void pic_parameter_set::set_derived_values(const seq_parameter_set* sps)
     logtrace(LogHeaders,"\n");
   }
 #endif
-
+}
   // 6.5.2 Z-scan order array initialization process
 
+#if 0
   for (int y=0;y<sps->PicHeightInTbsY;y++)
     for (int x=0;x<sps->PicWidthInTbsY;x++)
       {
@@ -686,7 +697,100 @@ void pic_parameter_set::set_derived_values(const seq_parameter_set* sps)
 
         MinTbAddrZS[x + y*sps->PicWidthInTbsY] += p;
       }
+  
+#else
+  static const  int zsan_64[16][16] ={
+    {  0,  1,  4,  5, 16, 17, 20, 21, 64, 65, 68, 69, 80, 81, 84, 85},
+    {  2,  3,  6,  7, 18, 19, 22, 23, 66, 67, 70, 71, 82, 83, 86, 87},
+    {  8,  9, 12, 13, 24, 25, 28, 29, 72, 73, 76, 77, 88, 89, 92, 93},
+    { 10, 11, 14, 15, 26, 27, 30, 31, 74, 75, 78, 79, 90, 91, 94, 95},
+    { 32, 33, 36, 37, 48, 49, 52, 53, 96, 97,100,101,112,113,116,117},
+    { 34, 35, 38, 39, 50, 51, 54, 55, 98, 99,102,103,114,115,118,119},
+    { 40, 41, 44, 45, 56, 57, 60, 61,104,105,108,109,120,121,124,125},
+    { 42, 43, 46, 47, 58, 59, 62, 63,106,107,110,111,122,123,126,127},
+    {128,129,132,133,144,145,148,149,192,193,196,197,208,209,212,213},
+    {130,131,134,135,146,147,150,151,194,195,198,199,210,211,214,215},
+    {136,137,140,141,152,153,156,157,200,201,204,205,216,217,220,221},
+    {138,139,142,143,154,155,158,159,202,203,206,207,218,219,222,223},
+    {160,161,164,165,176,177,180,181,224,225,228,229,240,241,244,245},
+    {162,163,166,167,178,179,182,183,226,227,230,231,242,243,246,247},
+    {168,169,172,173,184,185,188,189,232,233,236,237,248,249,252,253},
+    {170,171,174,175,186,187,190,191,234,235,238,239,250,251,254,255},
+  };
+  static const int minTUwidthmap[3][5] ={{1, 2, 4, 8, 16},{0, 1, 2, 4, 8},{0, 0, 1, 2, 4}};
+  int pos_y = 0;
+  int pos_y_cu = 0;
+  int pos_x_cu = 0;
+  int pos_y_cu_offset = 0;
+  int pos_x_cu_offset = 0;
+  int minTUwidth = minTUwidthmap[sps->Log2MinTrafoSize-2][sps->Log2CtbSizeY-2];
+  int widthsquare = minTUwidth*minTUwidth;
 
+  assert(sps->Log2MinTrafoSize<5);
+  assert(minTUwidth>0);
+
+  if(minTUwidth==16)
+  {
+    for (int y=0;y<sps->PicHeightInTbsY;y++)
+    {
+      pos_y_cu = y/16;
+      pos_y_cu_offset = y%16;
+      for (int x=0;x<sps->PicWidthInTbsY;x++)
+      {
+        pos_x_cu = x/16;
+        pos_x_cu_offset = x%16;
+        MinTbAddrZS[pos_y + x] = (pos_y_cu * sps->PicWidthInCtbsY + pos_x_cu) * 256 + zsan_64[pos_y_cu_offset][pos_x_cu_offset];
+      }
+      pos_y += sps->PicWidthInTbsY;
+    }     
+  }
+  else if(minTUwidth==8)
+  {
+    for (int y=0;y<sps->PicHeightInTbsY;y++)
+    {
+      pos_y_cu = y/8;
+      pos_y_cu_offset = y%8;
+      for (int x=0;x<sps->PicWidthInTbsY;x++)
+      {
+        pos_x_cu = x/8;
+        pos_x_cu_offset = x%8;
+        MinTbAddrZS[pos_y + x] = (pos_y_cu * sps->PicWidthInCtbsY + pos_x_cu) * 64 + zsan_64[pos_y_cu_offset][pos_x_cu_offset];
+      }
+      pos_y += sps->PicWidthInTbsY;
+    }  
+  }
+  else if(minTUwidth==4)
+  {
+    for (int y=0;y<sps->PicHeightInTbsY;y++)
+    {
+      pos_y_cu = y/4;
+      pos_y_cu_offset = y%4;
+      for (int x=0;x<sps->PicWidthInTbsY;x++)
+      {
+        pos_x_cu = x/4;
+        pos_x_cu_offset = x%4;
+        MinTbAddrZS[pos_y + x] = (pos_y_cu * sps->PicWidthInCtbsY + pos_x_cu) * 16 + zsan_64[pos_y_cu_offset][pos_x_cu_offset];
+      }
+      pos_y += sps->PicWidthInTbsY;
+    }  
+  }
+  else
+  {
+    for (int y=0;y<sps->PicHeightInTbsY;y++)
+    {
+      pos_y_cu = y/minTUwidth;
+      pos_y_cu_offset = y%minTUwidth;
+      for (int x=0;x<sps->PicWidthInTbsY;x++)
+      {
+        pos_x_cu = x/minTUwidth;
+        pos_x_cu_offset = x%minTUwidth;
+        MinTbAddrZS[pos_y + x] = (pos_y_cu * sps->PicWidthInCtbsY + pos_x_cu) * widthsquare + zsan_64[pos_y_cu_offset][pos_x_cu_offset];
+      }
+      pos_y += sps->PicWidthInTbsY;
+    } 
+  }
+
+#endif
 
   // --- debug logging ---
 

@@ -23,7 +23,7 @@
 #include <iomanip>
 #include <sstream>
 
-bool D = false;
+const bool D = false;
 
 context_model_table::context_model_table()
   : model(NULL), refcnt(NULL)

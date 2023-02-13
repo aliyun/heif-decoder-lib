@@ -1,5 +1,4 @@
 add_executable (dec265 dec265.cc)
-
 target_link_libraries (dec265 PRIVATE ${PROJECT_NAME})
 
 if(SDL_FOUND)

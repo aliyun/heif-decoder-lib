@@ -308,7 +308,7 @@ static int8_t mat_8_357[4][4] = {
 
 
 
-void transform_4x4_luma_add_8_fallback(uint8_t *dst, /*const*/ int16_t *coeffs, ptrdiff_t stride)
+void transform_4x4_luma_add_8_fallback(uint8_t *dst, /*const*/ int16_t *coeffs, ptrdiff_t stride, int bit_depth)
 {
   int16_t g[4][4];
 

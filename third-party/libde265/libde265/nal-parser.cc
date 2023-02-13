@@ -60,8 +60,9 @@ void NAL_unit::clear()
 
 LIBDE265_CHECK_RESULT bool NAL_unit::resize(int new_size)
 {
+#define NAL_PADDING 3
   if (capacity < new_size) {
-    unsigned char* newbuffer = (unsigned char*)malloc(new_size);
+    unsigned char* newbuffer = (unsigned char*)malloc(new_size + NAL_PADDING);
     if (newbuffer == NULL) {
       return false;
     }

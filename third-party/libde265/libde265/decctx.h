@@ -81,7 +81,12 @@ public:
 
   // we need 16 bytes of extra memory (8*int16) to shift the base for the
   // alignment required for SSE code !
+
+  // #if HAVE_AVX2
+  //  int16_t _coeffBuf[(32*32)+16];
+  // #else
   int16_t _coeffBuf[(32*32)+8];
+  //#endif
   int16_t *coeffBuf; // the base pointer for into _coeffBuf, aligned to 16 bytes
 
   int16_t coeffList[3][32*32];

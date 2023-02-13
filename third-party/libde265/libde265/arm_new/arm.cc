@@ -36,7 +36,10 @@ void init_acceleration_functions_arm(struct acceleration_functions* accel)
   accel->transform_skip_residual16 = ff_hevc_transform_skip_residual16;
   accel->add_residual16_8  = ff_hevc_residual16_add_8_neon;
 
-  accel->intra_pred_dc_8  = intra_prediction_DC_neon_8 ; 
+  accel->intra_pred_dc_8[0]  = intra_prediction_DC_neon_8 ; 
+  accel->intra_pred_dc_8[1]  = intra_prediction_DC_neon_8 ;
+  accel->intra_pred_dc_8[2]  = intra_prediction_DC_neon_8 ;
+  accel->intra_pred_dc_8[3]  = intra_prediction_DC_neon_8 ;
 //  accel->intra_pred_dc_16 = intra_prediction_DC_neon_16 ;
   accel->intra_prediction_angular_8[0]  = intra_prediction_angular_2_9_neon ;
   accel->intra_prediction_angular_8[1]  = intra_prediction_angular_10_17_neon;
