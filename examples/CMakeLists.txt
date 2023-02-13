@@ -57,8 +57,8 @@ set (additional_includes
 endif()
 
 if(UNIX OR MINGW)
-  include (${CMAKE_ROOT}/Modules/FindPkgConfig.cmake)
-  pkg_check_modules (LIBPNG libpng)
+  #include (${CMAKE_ROOT}/Modules/FindPkgConfig.cmake)
+  #pkg_check_modules (LIBPNG libpng)
   if(LIBPNG_FOUND)
     add_definitions(-DHAVE_LIBPNG=1)
     set (heif_convert_sources

@@ -344,15 +344,18 @@ static void fill_scan_pos(scan_position* pos, int x,int y,int scanIdx, int log2T
 #endif
 
 #ifndef OPT_1
+static bool init_scan_orders_done=false;
 void init_scan_orders()
 {
+  if(!init_scan_orders_done){
+   init_scan_orders_done=true; 
   for (int log2size=1;log2size<=5;log2size++)
     {
       init_scan_h(scan_h[log2size], 1<<log2size);
       init_scan_v(scan_v[log2size], 1<<log2size);
       init_scan_d(scan_d[log2size], 1<<log2size);
     }
-
+  
 #ifdef HAVE_ARMS
   //horitizal
   std::cout << "static const uint8_t scan_h_y_1[2*2] = {" << std::endl;
@@ -694,6 +697,8 @@ void init_scan_orders()
     std::cout << (int)scanpos_d_5[i].scanPos << ", ";
   std::cout << std::endl;
   std::cout << "};" << std::endl;
+  
 #endif
+  }
 }
 #endif

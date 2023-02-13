@@ -126,29 +126,52 @@ static const uint8_t next_state_LPS[64] =
   };
 
 #ifdef OPT_CABAC
-static uint8_t  libde265_cabac_tables[512 + 4*2*64 + 4*64 + 63] = 
-{9, 8, 7, 7, 6, 6, 6, 6, 5, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 
- 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 
- 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 
- 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 
- 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
- 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
- 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
- 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
- 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
- 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
- 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
- 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
- 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
- 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
- 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
- 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
- 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
- 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
- 0, 0, 0, 0, 0, 0, 0, 0};
-static uint8_t * const libde265_norm_shift = libde265_cabac_tables + LIBDE265_NORM_SHIFT_OFFSET;
-static uint8_t * const libde265_lps_range  = libde265_cabac_tables + LIBDE265_LPS_RANGE_OFFSET;
-static uint8_t * const libde265_mlps_state = libde265_cabac_tables + LIBDE265_MLPS_STATE_OFFSET;
+static const uint8_t libde265_cabac_tables[]={
+9,8,7,7,6,6,6,6,5,5,5,5,5,5,5,5,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
+3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+128,128,128,128,128,128,123,123,116,116,111,111,105,105,100,100,95,95,90,90,85,85,81,81,77,77,73,73,69,69,66,66,
+62,62,59,59,56,56,53,53,51,51,48,48,46,46,43,43,41,41,39,39,37,37,35,35,33,33,32,32,30,30,29,29,
+27,27,26,26,24,24,23,23,22,22,21,21,20,20,19,19,18,18,17,17,16,16,15,15,14,14,14,14,13,13,12,12,
+12,12,11,11,11,11,10,10,10,10,9,9,9,9,8,8,8,8,7,7,7,7,7,7,6,6,6,6,6,6,2,2,
+176,176,167,167,158,158,150,150,142,142,135,135,128,128,122,122,116,116,110,110,104,104,99,99,94,94,89,89,85,85,80,80,
+76,76,72,72,69,69,65,65,62,62,59,59,56,56,53,53,50,50,48,48,45,45,43,43,41,41,39,39,37,37,35,35,
+33,33,31,31,30,30,28,28,27,27,26,26,24,24,23,23,22,22,21,21,20,20,19,19,18,18,17,17,16,16,15,15,
+14,14,14,14,13,13,12,12,12,12,11,11,11,11,10,10,9,9,9,9,9,9,8,8,8,8,7,7,7,7,2,2,
+208,208,197,197,187,187,178,178,169,169,160,160,152,152,144,144,137,137,130,130,123,123,117,117,111,111,105,105,100,100,95,95,
+90,90,86,86,81,81,77,77,73,73,69,69,66,66,63,63,59,59,56,56,54,54,51,51,48,48,46,46,43,43,41,41,
+39,39,37,37,35,35,33,33,32,32,30,30,29,29,27,27,26,26,25,25,23,23,22,22,21,21,20,20,19,19,18,18,
+17,17,16,16,15,15,15,15,14,14,13,13,12,12,12,12,11,11,11,11,10,10,10,10,9,9,9,9,8,8,2,2,
+240,240,227,227,216,216,205,205,195,195,185,185,175,175,166,166,158,158,150,150,142,142,135,135,128,128,122,122,116,116,110,110,
+104,104,99,99,94,94,89,89,85,85,80,80,76,76,72,72,69,69,65,65,62,62,59,59,56,56,53,53,50,50,48,48,
+45,45,43,43,41,41,39,39,37,37,35,35,33,33,31,31,30,30,28,28,27,27,25,25,24,24,23,23,22,22,21,21,
+20,20,19,19,18,18,17,17,16,16,15,15,14,14,14,14,13,13,12,12,12,12,11,11,11,11,10,10,9,9,2,2,
+127,126,77,76,77,76,75,74,75,74,75,74,73,72,73,72,73,72,71,70,71,70,71,70,69,68,69,68,67,66,67,66,
+67,66,65,64,65,64,63,62,61,60,61,60,61,60,59,58,59,58,57,56,55,54,55,54,53,52,53,52,51,50,49,48,
+49,48,47,46,45,44,45,44,43,42,43,42,39,38,39,38,37,36,37,36,33,32,33,32,31,30,31,30,27,26,27,26,
+25,24,23,22,23,22,19,18,19,18,17,16,15,14,13,12,11,10,9,8,9,8,5,4,5,4,3,2,1,0,0,1,
+2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,
+34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,
+66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,
+98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,124,125,126,127,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
+static const uint8_t * const libde265_norm_shift = libde265_cabac_tables + LIBDE265_NORM_SHIFT_OFFSET;
+static const uint8_t * const libde265_lps_range  = libde265_cabac_tables + LIBDE265_LPS_RANGE_OFFSET;
+static const uint8_t * const libde265_mlps_state = libde265_cabac_tables + LIBDE265_MLPS_STATE_OFFSET;
 #endif
 
 #ifdef DE265_LOG_TRACE
@@ -162,7 +185,7 @@ void init_CABAC_decoder(CABAC_decoder* decoder, uint8_t* bitstream, int length)
   decoder->bitstream_start = bitstream;
   decoder->bitstream_curr  = bitstream;
   decoder->bitstream_end   = bitstream+length;
-
+#if 0
 #ifdef OPT_CABAC
   int i;
   for (i = 0; i < 64; i++)
@@ -183,26 +206,205 @@ void init_CABAC_decoder(CABAC_decoder* decoder, uint8_t* bitstream, int length)
     }
   }
 #endif
+#endif
 }
+
 
 #ifdef OPT_CABAC
-void read_bytes(CABAC_decoder* decoder)
+int decode_CABAC_bit_8(CABAC_decoder* decoder, context_model* model)
 {
-#if CHECK_STREAM_READ
-  if (decoder->bitstream_curr < decoder->bitstream_end)
-#endif
+  logtrace(LogCABAC,"[%3d] decodeBin r:%x v:%x state:%d\n",logcnt,decoder->range, decoder->value, model->state);
+  int bit, lps_mask;
+  int num_bits;
+  int s = model->state;
+  int RangeLPS= libde265_lps_range[2*(decoder->range&0xC0) + s];
+  decoder->range -= RangeLPS;
+  lps_mask= ((decoder->range<< 7) - decoder->value-1)>>31;
+
+  decoder->value -= (decoder->range<< 7) & lps_mask;
+  decoder->range += (RangeLPS - decoder->range) & lps_mask;
+
+  s^=lps_mask;
+  model->state = (libde265_mlps_state+128)[s];
+  bit= s&1;
+
+  num_bits= libde265_norm_shift[decoder->range ];
+  decoder->range  <<= num_bits;
+  decoder->value  <<= num_bits;
+
+  decoder->bits_needed += num_bits;
+
+  if (lps_mask ==0 && decoder->bits_needed == 0)
   {
-#if CABAC_BITS == 16 
-    decoder->value += (decoder->bitstream_curr[0]<<9) + (decoder->bitstream_curr[1]<<1);
-#else
-    decoder->value += (decoder->bitstream_curr[0]<<1);
-#endif
-    decoder->value -= CABAC_MASK;
-    decoder->bitstream_curr+= CABAC_BITS/8;
+    decoder->bits_needed = -8;
+    if (decoder->bitstream_curr < decoder->bitstream_end)
+      { decoder->value |= *decoder->bitstream_curr++; }
   }
+
+  if(lps_mask < 0 && decoder->bits_needed >= 0)
+  {
+    if (decoder->bitstream_curr < decoder->bitstream_end)
+    { decoder->value |= (*decoder->bitstream_curr++) << decoder->bits_needed; }
+    decoder->bits_needed -= 8;
+  }
+
+  return bit;
 }
 
-int (*decode_CABAC_FL_bypass_parallel_ptr)(CABAC_decoder* decoder, int nBits);
+int decode_CABAC_bit_16(CABAC_decoder* decoder, context_model* model)
+{
+  logtrace(LogCABAC,"[%3d] decodeBin r:%x v:%x state:%d\n",logcnt,decoder->range, decoder->value, model->state);
+  int bit, lps_mask;
+  int num_bits;
+  int s = model->state;
+  int RangeLPS= libde265_lps_range[2*(decoder->range&0xC0) + s];
+  //int CABAC_BITS = decoder->cabac_bits;
+  decoder->range -= RangeLPS;
+  lps_mask= ((decoder->range<<15) - decoder->value-1)>>31;
+
+  decoder->value -= (decoder->range<<15) & lps_mask;
+  decoder->range += (RangeLPS - decoder->range) & lps_mask;
+
+  s^=lps_mask;
+  model->state = (libde265_mlps_state+128)[s];
+  bit= s&1;
+
+  num_bits= libde265_norm_shift[decoder->range ];
+  decoder->range  <<= num_bits;
+  decoder->value  <<= num_bits;
+
+  decoder->bits_needed += num_bits;
+
+  if (lps_mask ==0 && decoder->bits_needed == 0)
+  {
+    decoder->bits_needed = -16;
+    decoder->value |= (decoder->bitstream_curr[0] << 8) + decoder->bitstream_curr[1]; 
+    if (decoder->bitstream_curr < decoder->bitstream_end)
+    { 
+      decoder->bitstream_curr += 2;
+    }
+  }
+
+  if(lps_mask < 0 && decoder->bits_needed >= 0)
+  {
+    decoder->value |= ((decoder->bitstream_curr[0] << 8) + decoder->bitstream_curr[1]) << decoder->bits_needed; 
+    if (decoder->bitstream_curr < decoder->bitstream_end)
+    { 
+      decoder->bitstream_curr += 2;
+    }
+    decoder->bits_needed -= 16;
+  }
+
+  return bit;
+}
+
+int decode_CABAC_term_bit_8(CABAC_decoder* decoder)
+{
+  logtrace(LogCABAC,"CABAC term: range=%x\n", decoder->range);
+  int bit_new;
+  int range, mask;
+  decoder->range -= 2;
+  range = decoder->range<<7;
+  mask = (decoder->value - range)>> 31;
+  int shift= (uint32_t)(decoder->range - 0x100)>>31;
+  shift = shift&mask;
+  decoder->range  <<= shift;
+  decoder->value  <<= shift;
+  decoder->bits_needed += shift;
+  bit_new = mask + 1;
+
+  if (mask<0 && decoder->bits_needed==0)
+  {
+    decoder->bits_needed = -8;
+    if (decoder->bitstream_curr < decoder->bitstream_end) 
+    {
+      decoder->value += (*decoder->bitstream_curr++);
+    }
+  }
+  return bit_new;
+}
+int decode_CABAC_term_bit_16(CABAC_decoder* decoder)
+{
+  logtrace(LogCABAC,"CABAC term: range=%x\n", decoder->range);
+  int bit_new;
+  int range, mask;
+  decoder->range -= 2;
+  range = decoder->range<<15;
+  mask = (decoder->value - range)>> 31;
+  int shift= (uint32_t)(decoder->range - 0x100)>>31;
+  shift = shift&mask;
+  decoder->range  <<= shift;
+  decoder->value  <<= shift;
+  decoder->bits_needed += shift;
+  bit_new = mask + 1;
+
+  if (mask<0 && decoder->bits_needed == 0)
+  {
+    decoder->bits_needed = -16;
+    decoder->value += (decoder->bitstream_curr[0] << 8) + decoder->bitstream_curr[1]; 
+    if (decoder->bitstream_curr < decoder->bitstream_end)
+    { 
+      decoder->bitstream_curr += 2;
+    }
+  }
+
+  return bit_new;
+}
+
+
+
+int decode_CABAC_bypass_8(CABAC_decoder* decoder)
+{
+  logtrace(LogCABAC,"[%3d] bypass r:%x v:%x\n",logcnt,decoder->range, decoder->value);
+  int bit_new;
+  
+  int range;
+  decoder->value <<=1;
+  decoder->bits_needed++;
+
+  if (decoder->bits_needed >= 0)
+  {
+    if (decoder->bitstream_end > decoder->bitstream_curr) {
+      decoder->bits_needed = -8;
+      decoder->value |= *decoder->bitstream_curr++;
+    }
+  }
+
+  range= decoder->range<< 7;
+  decoder->value = decoder->value - range;
+  int mask = decoder->value >> 31;
+  decoder->value += range & mask;
+  bit_new = mask+1;
+  return bit_new;
+}
+int decode_CABAC_bypass_16(CABAC_decoder* decoder)
+{
+  logtrace(LogCABAC,"[%3d] bypass r:%x v:%x\n",logcnt,decoder->range, decoder->value);
+  int bit_new;
+  
+  int range;
+  decoder->value <<=1;
+  decoder->bits_needed++;
+
+  if (decoder->bits_needed >= 0)
+  {
+    decoder->bits_needed = -16;
+    decoder->value |= (decoder->bitstream_curr[0] << 8) + decoder->bitstream_curr[1]; 
+    if (decoder->bitstream_end > decoder->bitstream_curr) 
+    {
+      decoder->bitstream_curr += 2;
+    }
+  }
+
+  range= decoder->range<< 15;
+  decoder->value = decoder->value - range;
+  int mask = decoder->value >> 31;
+  decoder->value += range & mask;
+  bit_new = mask+1;
+  return bit_new;
+}
+
+
 
 int decode_CABAC_FL_bypass_parallel_8(CABAC_decoder* decoder, int nBits)
 {
@@ -259,40 +461,27 @@ int decode_CABAC_FL_bypass_parallel_16(CABAC_decoder* decoder, int nBits)
   
   return value_new;
 }
-
-void init_CABAC_decoder_2(CABAC_decoder* decoder)
-{
-  int length = decoder->bitstream_end - decoder->bitstream_curr;
-
-  decoder->range = 0x1FE;
-  decoder->value = 0;
-#if CABAC_BITS == 16
-  assert(length>=3);
-  decoder->value  =  (*decoder->bitstream_curr++)<<18;
-  decoder->value +=  (*decoder->bitstream_curr++)<<10;
-  decoder->value += ((*decoder->bitstream_curr++)<<2) + 2;
-#else
-  assert(length>=2);
-  decoder->value  = (*decoder->bitstream_curr++) << 10;
-  decoder->value += ((*decoder->bitstream_curr++)<<2) + 2;
-#endif
-}
-#else
-void init_CABAC_decoder_2(CABAC_decoder* decoder)
-{
-  int length = decoder->bitstream_end - decoder->bitstream_curr;
-  decoder->range = 510;
-  decoder->bits_needed = 8;
-  decoder->value = 0;
-  if (length>0) { decoder->value  = (*decoder->bitstream_curr++) << 8;  decoder->bits_needed-=8; }
-  if (length>1) { decoder->value |= (*decoder->bitstream_curr++);       decoder->bits_needed-=8; }
-  logtrace(LogCABAC,"[%3d] init_CABAC_decode_2 r:%x v:%x\n", logcnt, decoder->range, decoder->value);
-}
 #endif
 
 #ifdef OPT_CABAC
-#ifdef HAVE_ARM64
-int decode_CABAC_bit(CABAC_decoder* decoder, context_model* model)
+void read_bytes(CABAC_decoder* decoder)
+{
+#if CHECK_STREAM_READ
+  if (decoder->bitstream_curr < decoder->bitstream_end)
+#endif
+  {
+#if CABAC_BITS == 16 
+    decoder->value += (decoder->bitstream_curr[0]<<9) + (decoder->bitstream_curr[1]<<1);
+#else
+    decoder->value += (decoder->bitstream_curr[0]<<1);
+#endif
+    decoder->value -= CABAC_MASK;
+    decoder->bitstream_curr+= CABAC_BITS/8;
+  }
+}
+
+#if defined (HAVE_ARM64) && ! defined (OPT_CABAC_BYPASS) && CABAC_BITS==16
+int decode_CABAC_bit_new(CABAC_decoder* decoder, context_model* model)
 {
   int bit=0;
   void *reg_a, *reg_b, *reg_c, *tmp;
@@ -361,7 +550,7 @@ int decode_CABAC_bit(CABAC_decoder* decoder, context_model* model)
 
 }
 #else
-int  decode_CABAC_bit(CABAC_decoder* decoder, context_model* model)
+int decode_CABAC_bit_new(CABAC_decoder* decoder, context_model* model)
 {
   logtrace(LogCABAC,"[%3d] decodeBin r:%x v:%x state:%d\n",logcnt,decoder->range, decoder->value, model->state);
   int bit, lps_mask;
@@ -405,6 +594,196 @@ int  decode_CABAC_bit(CABAC_decoder* decoder, context_model* model)
   return bit;
 }
 #endif
+
+int decode_CABAC_term_bit_new(CABAC_decoder* decoder)
+{
+  logtrace(LogCABAC,"CABAC term: range=%x\n", decoder->range);
+  int bit_new;
+  int range, mask;
+  decoder->range -= 2;
+  range = decoder->range<<(CABAC_BITS+1);
+  mask = (decoder->value - range)>> 31;
+  int shift= (uint32_t)(decoder->range - 0x100)>>31;
+  shift = shift&mask;
+  decoder->range  <<= shift;
+  decoder->value  <<= shift;
+  bit_new = mask + 1;
+
+  if (!(decoder->value&CABAC_MASK))
+  {
+    read_bytes(decoder);
+  }
+  assert(decoder->range>=0);
+  assert(decoder->value>=0);
+  return bit_new;
+}
+
+int decode_CABAC_bypass_new(CABAC_decoder* decoder)
+{
+  logtrace(LogCABAC,"[%3d] bypass r:%x v:%x\n",logcnt,decoder->range, decoder->value);
+  int bit_new;
+  
+  int range;
+  decoder->value <<=1;
+
+  if (!(decoder->value&CABAC_MASK))
+  {
+    read_bytes(decoder);
+  }
+
+  range= decoder->range<< (CABAC_BITS+1);
+  decoder->value = decoder->value - range;
+  int mask = decoder->value >> 31;
+  decoder->value += range & mask;
+  bit_new = mask+1;
+  assert(decoder->range>=0);
+  assert(decoder->value>=0);
+  return bit_new;
+}
+
+int decode_CABAC_FL_bypass_parallel_new(CABAC_decoder* decoder, int nBits)
+{
+  int value_new;
+  value_new = decode_CABAC_bypass(decoder);
+  for (int i = 1; i < nBits; i++)
+  {
+    value_new = (value_new << 1) | decode_CABAC_bypass(decoder);
+  }
+  return value_new;
+}
+
+#endif
+
+#ifdef OPT_CABAC
+void init_CABAC_decoder_2(char pcm_flag, CABAC_decoder* decoder)
+{
+  int length = decoder->bitstream_end - decoder->bitstream_curr;
+  decoder->range = 0x1FE;
+  decoder->value = 0;
+
+  if(pcm_flag)
+  {
+    decoder->bits_needed = 8;
+    decoder->decode_CABAC_bit_ptr = decode_CABAC_bit_8;
+    decoder->decode_CABAC_term_bit_ptr = decode_CABAC_term_bit_8;
+    decoder->decode_CABAC_bypass_ptr = decode_CABAC_bypass_8;
+    decoder->decode_CABAC_FL_bypass_parallel_ptr = decode_CABAC_FL_bypass_parallel_8;
+
+    assert(length>=2);
+    decoder->value  = (*decoder->bitstream_curr++) << 8;
+    decoder->bits_needed-=8;
+    decoder->value += (*decoder->bitstream_curr++);
+    decoder->bits_needed-=8;
+  }
+  else
+  {
+#if OPT_CABAC_BYPASS
+    decoder->bits_needed = 8;
+#if CABAC_BITS == 16
+    decoder->decode_CABAC_bit_ptr = decode_CABAC_bit_16;
+    decoder->decode_CABAC_term_bit_ptr = decode_CABAC_term_bit_16;
+    decoder->decode_CABAC_bypass_ptr = decode_CABAC_bypass_16;
+    decoder->decode_CABAC_FL_bypass_parallel_ptr = decode_CABAC_FL_bypass_parallel_16;
+
+    assert(length>=3);
+    decoder->value  =  (*decoder->bitstream_curr++) <<16;
+    decoder->bits_needed-=8;
+    decoder->value +=  (*decoder->bitstream_curr++) <<8;
+    decoder->bits_needed-=8;
+    decoder->value +=  (*decoder->bitstream_curr++);
+    decoder->bits_needed-=8;
+#else
+    decoder->decode_CABAC_bit_ptr = decode_CABAC_bit_8;
+    decoder->decode_CABAC_term_bit_ptr = decode_CABAC_term_bit_8;
+    decoder->decode_CABAC_bypass_ptr = decode_CABAC_bypass_8;
+    decoder->decode_CABAC_FL_bypass_parallel_ptr = decode_CABAC_FL_bypass_parallel_8;
+
+    assert(length>=2);
+    decoder->value  = (*decoder->bitstream_curr++) << 8;
+    decoder->bits_needed-=8;
+    decoder->value += (*decoder->bitstream_curr++);
+    decoder->bits_needed-=8;
+#endif
+#else
+    decoder->decode_CABAC_bit_ptr = decode_CABAC_bit_new;
+    decoder->decode_CABAC_term_bit_ptr = decode_CABAC_term_bit_new;
+    decoder->decode_CABAC_bypass_ptr = decode_CABAC_bypass_new;
+    decoder->decode_CABAC_FL_bypass_parallel_ptr = decode_CABAC_FL_bypass_parallel_new;
+#if CABAC_BITS == 16
+    assert(length>=3);
+    decoder->value  =  (*decoder->bitstream_curr++)<<18;
+    decoder->value +=  (*decoder->bitstream_curr++)<<10;
+    decoder->value += ((*decoder->bitstream_curr++)<<2) + 2;
+#else
+    assert(length>=2);
+    decoder->value  = (*decoder->bitstream_curr++) << 10;
+    decoder->value += ((*decoder->bitstream_curr++)<<2) + 2;
+#endif
+#endif
+  }
+
+// #if OPT_CABAC_BYPASS
+//   decoder->bits_needed = 8;
+// #if CABAC_BITS == 16
+//   decode_CABAC_bit_ptr = decode_CABAC_bit_16;
+//   decode_CABAC_term_bit_ptr = decode_CABAC_term_bit_16;
+//   decode_CABAC_bypass_ptr = decode_CABAC_bypass_16;
+//   decode_CABAC_FL_bypass_parallel_ptr = decode_CABAC_FL_bypass_parallel_16;
+
+//   assert(length>=3);
+//   decoder->value  =  (*decoder->bitstream_curr++) <<16;
+//   decoder->bits_needed-=8;
+//   decoder->value +=  (*decoder->bitstream_curr++) <<8;
+//   decoder->bits_needed-=8;
+//   decoder->value +=  (*decoder->bitstream_curr++);
+//   decoder->bits_needed-=8;
+// #else
+//   decode_CABAC_bit_ptr = decode_CABAC_bit_8;
+//   decode_CABAC_term_bit_ptr = decode_CABAC_term_bit_8;
+//   decode_CABAC_bypass_ptr = decode_CABAC_bypass_8;
+//   decode_CABAC_FL_bypass_parallel_ptr = decode_CABAC_FL_bypass_parallel_8;
+
+//   assert(length>=2);
+//   decoder->value  = (*decoder->bitstream_curr++) << 8;
+//   decoder->bits_needed-=8;
+//   decoder->value += (*decoder->bitstream_curr++);
+//   decoder->bits_needed-=8;
+// #endif
+// #else
+//   decode_CABAC_bit_ptr = decode_CABAC_bit_new;
+//   decode_CABAC_term_bit_ptr = decode_CABAC_term_bit_new;
+//   decode_CABAC_bypass_ptr = decode_CABAC_bypass_new;
+//   decode_CABAC_FL_bypass_parallel_ptr = decode_CABAC_FL_bypass_parallel_new;
+// #if CABAC_BITS == 16
+//   assert(length>=3);
+//   decoder->value  =  (*decoder->bitstream_curr++)<<18;
+//   decoder->value +=  (*decoder->bitstream_curr++)<<10;
+//   decoder->value += ((*decoder->bitstream_curr++)<<2) + 2;
+// #else
+//   assert(length>=2);
+//   decoder->value  = (*decoder->bitstream_curr++) << 10;
+//   decoder->value += ((*decoder->bitstream_curr++)<<2) + 2;
+// #endif
+// #endif
+}
+#else
+void init_CABAC_decoder_2(char pcm_flag, CABAC_decoder* decoder)
+{
+  int length = decoder->bitstream_end - decoder->bitstream_curr;
+  decoder->range = 510;
+  decoder->bits_needed = 8;
+  decoder->value = 0;
+  if (length>0) { decoder->value  = (*decoder->bitstream_curr++) << 8;  decoder->bits_needed-=8; }
+  if (length>1) { decoder->value |= (*decoder->bitstream_curr++);       decoder->bits_needed-=8; }
+  logtrace(LogCABAC,"[%3d] init_CABAC_decode_2 r:%x v:%x\n", logcnt, decoder->range, decoder->value);
+}
+#endif
+
+#ifdef OPT_CABAC
+int  decode_CABAC_bit(CABAC_decoder* decoder, context_model* model)
+{
+  return decoder->decode_CABAC_bit_ptr(decoder, model);
+}
 #else
 int  decode_CABAC_bit(CABAC_decoder* decoder, context_model* model)
 {
@@ -488,25 +867,7 @@ int  decode_CABAC_bit(CABAC_decoder* decoder, context_model* model)
 #ifdef OPT_CABAC
 int  decode_CABAC_term_bit(CABAC_decoder* decoder)
 {
-  logtrace(LogCABAC,"CABAC term: range=%x\n", decoder->range);
-  int bit_new;
-  int range, mask;
-  decoder->range -= 2;
-  range = decoder->range<<(CABAC_BITS+1);
-  mask = (decoder->value - range)>> 31;
-  int shift= (uint32_t)(decoder->range - 0x100)>>31;
-  shift = shift&mask;
-  decoder->range  <<= shift;
-  decoder->value  <<= shift;
-  bit_new = mask + 1;
-
-  if (!(decoder->value&CABAC_MASK))
-  {
-    read_bytes(decoder);
-  }
-  assert(decoder->range>=0);
-  assert(decoder->value>=0);
-  return bit_new;
+  return decoder->decode_CABAC_term_bit_ptr(decoder);
 }
 #else
 int  decode_CABAC_term_bit(CABAC_decoder* decoder)
@@ -546,25 +907,7 @@ int  decode_CABAC_term_bit(CABAC_decoder* decoder)
 #ifdef OPT_CABAC
 int  decode_CABAC_bypass(CABAC_decoder* decoder)
 {
-  logtrace(LogCABAC,"[%3d] bypass r:%x v:%x\n",logcnt,decoder->range, decoder->value);
-  int bit_new;
-  
-  int range;
-  decoder->value <<=1;
-
-  if (!(decoder->value&CABAC_MASK))
-  {
-    read_bytes(decoder);
-  }
-
-  range= decoder->range<< (CABAC_BITS+1);
-  decoder->value = decoder->value - range;
-  int mask = decoder->value >> 31;
-  decoder->value += range & mask;
-  bit_new = mask+1;
-  assert(decoder->range>=0);
-  assert(decoder->value>=0);
-  return bit_new;
+  return decoder->decode_CABAC_bypass_ptr(decoder);
 }
 #else
 int  decode_CABAC_bypass(CABAC_decoder* decoder)
@@ -628,15 +971,7 @@ int  decode_CABAC_TU(CABAC_decoder* decoder, int cMax, context_model* model)
 #ifdef OPT_CABAC
 int  decode_CABAC_FL_bypass_parallel(CABAC_decoder* decoder, int nBits)
 {
-  //return decode_CABAC_FL_bypass_parallel_ptr(decoder, nBits);
-  
-  int value_new;
-  value_new = decode_CABAC_bypass(decoder);
-  for (int i = 1; i < nBits; i++)
-  {
-    value_new = (value_new << 1) | decode_CABAC_bypass(decoder);
-  }
-  return value_new;
+  return decoder->decode_CABAC_FL_bypass_parallel_ptr(decoder, nBits);
 }
 #else
 int  decode_CABAC_FL_bypass_parallel(CABAC_decoder* decoder, int nBits)

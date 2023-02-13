@@ -23,6 +23,9 @@
 
 #include <stdint.h>
 #include "contextmodel.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #ifdef OPT_CABAC
 //extern static const uint8_t  libde265_cabac_tables[512 + 4*2*64 + 4*64 + 63];
@@ -31,10 +34,10 @@
 #define LIBDE265_MLPS_STATE_OFFSET 1024
 #define CABAC_BITS   16
 #define CABAC_MASK ((1<<CABAC_BITS)-1)
-#define CHECK_STREAM_READ 0
+#define CHECK_STREAM_READ 1
 #endif
 
-typedef struct {
+typedef struct _CABAC_DECODER_ {
   uint8_t* bitstream_start;
   uint8_t* bitstream_curr;
   uint8_t* bitstream_end;
@@ -43,6 +46,10 @@ typedef struct {
   int32_t value;
   int32_t range;
   int16_t bits_needed;
+  int (*decode_CABAC_bit_ptr)(struct _CABAC_DECODER_ * decoder, context_model* model);
+  int (*decode_CABAC_bypass_ptr)(struct _CABAC_DECODER_ * decoder);
+  int (*decode_CABAC_term_bit_ptr)(struct _CABAC_DECODER_ * decoder);
+  int (*decode_CABAC_FL_bypass_parallel_ptr)(struct _CABAC_DECODER_ * decoder, int nBits);  
 #else
   uint32_t range;
   uint32_t value;
@@ -52,7 +59,7 @@ typedef struct {
 
 
 void init_CABAC_decoder(CABAC_decoder* decoder, uint8_t* bitstream, int length);
-void init_CABAC_decoder_2(CABAC_decoder* decoder);
+void init_CABAC_decoder_2(char pcm_flag, CABAC_decoder* decoder);
 int  decode_CABAC_bit(CABAC_decoder* decoder, context_model* model);
 int  decode_CABAC_TU(CABAC_decoder* decoder, int cMax, context_model* model);
 int  decode_CABAC_term_bit(CABAC_decoder* decoder);

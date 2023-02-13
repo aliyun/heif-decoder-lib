@@ -343,7 +343,7 @@ void inv_transform(acceleration_functions* acceleration,
   if (trType==1) {
     assert(log2TbSize==2);
 
-    acceleration->transform_4x4_dst_add_8(dst, coeff, dstStride);
+    acceleration->transform_4x4_dst_add_8(dst, coeff, dstStride, 8);
 
   } else {
     acceleration->transform_add_8[log2TbSize-2](dst,coeff,dstStride, 32);
@@ -658,7 +658,7 @@ void scale_coefficients_internal(thread_context* tctx,
       }
       else {
         transform_coefficients(&tctx->decctx->acceleration, coeff, coeffStride, nT, trType,
-                               pred, stride, bit_depth, tctx->DConly[cIdx], tctx->col_limit[cIdx]);
+                               pred, stride, bit_depth, tctx->DConly[cIdx], tctx->col_limit[cIdx]);     
       }
     }
   }
