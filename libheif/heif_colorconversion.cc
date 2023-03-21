@@ -3948,12 +3948,12 @@ std::shared_ptr<HeifPixelImage> heif::convert_colorspace(const std::shared_ptr<H
 
   // alpha image should have full image resolution
 
-  if (input->has_channel(heif_channel_Alpha)) {
-    if (input->get_width(heif_channel_Alpha) != width ||
-        input->get_height(heif_channel_Alpha) != height) {
-      return nullptr;
-    }
-  }
+//  if (input->has_channel(heif_channel_Alpha)) {
+//    if (input->get_width(heif_channel_Alpha) != width ||
+//        input->get_height(heif_channel_Alpha) != height) {
+//      return nullptr;
+//    }
+//  }
 
   // check for valid target YCbCr chroma formats
 
