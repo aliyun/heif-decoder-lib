@@ -775,7 +775,7 @@ void split_last_significant_position(int pos, int* prefix, int* suffix, int* nSu
 }
 
 
-extern uint8_t* ctxIdxLookup[4 /* 4-log2-32 */][2 /* !!cIdx */][2 /* !!scanIdx */][4 /* prevCsbf */];
+//extern const uint8_t ctxIdxLookup[4 /* 4-log2-32 */][2 /* !!cIdx */][2 /* !!scanIdx */][4 /* prevCsbf */][1024];
 
 /* These values are read from the image metadata:
    - intra prediction mode (x0;y0)
@@ -987,7 +987,7 @@ void encode_residual(encoder_context* ectx,
       int log2w = log2TrafoSize-2;
       int prevCsbf = coded_sub_block_neighbors[S.x+S.y*sbWidth];
 #endif
-      uint8_t* ctxIdxMap = ctxIdxLookup[log2w][!!cIdx][!!scanIdx][prevCsbf];
+      const uint8_t* ctxIdxMap = ctxIdxLookup[log2w][!!cIdx][!!scanIdx][prevCsbf];
 
       logdebug(LogSlice,"log2w:%d cIdx:%d scanIdx:%d prevCsbf:%d\n",
                log2w,cIdx,scanIdx,prevCsbf);

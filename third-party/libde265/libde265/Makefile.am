@@ -103,8 +103,8 @@ if ENABLE_ENCODER
 endif
 
 if ENABLE_SSE_OPT
-  SUBDIRS += x86
-  libde265_la_LIBADD += x86/libde265_x86.la
+  SUBDIRS += x86_new
+  libde265_la_LIBADD += x86_new/libde265_x86.la
 endif
 
 if ENABLE_ARM_OPT

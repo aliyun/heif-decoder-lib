@@ -66,6 +66,55 @@ int stride;
 const uint8_t* data = heif_image_get_plane_readonly(img, heif_channel_interleaved, &stride);
 ```
 
+Loading the image sequences in an HEIF file is as easy as this:
+/* Defined in heif.h
+struct image_parameters
+{
+  bool alpha_flag;
+  uint32_t img_width;
+  uint32_t img_height;
+};
+struct libheif_parameters
+{
+  bool movie_flag;
+  uint32_t frame_count;
+  uint32_t movie_duration;
+  image_parameters* img_params;
+};
+*/
+```C
+heif_context* ctx = heif_context_alloc();
+heif_context_read_from_file(ctx, input_filename, nullptr); or
+heif_context_read_from_memory(ctx, data, size, nullptr);
+
+int num_images = heif_context_get_number_of_top_level_images(ctx);
+
+libheif_parameters params;
+
+params.img_params = (struct image_parameters*)malloc(num_images*sizeof(struct image_parameters));
+
+if(!params.img_params)
+    exit(1);
+
+err = heif_context_get_heif_params(ctx, &params);
+
+for (int idx = 0; idx < params.frame_count; ++idx)
+{
+    // get a handle to the primary image
+    heif_image_handle* handle;
+    heif_context_get_primary_image_handle(ctx, &handle);
+    
+    // decode the image and convert colorspace to RGB, saved as 24bit interleaved
+    heif_image* img;
+    heif_decode_image(handle, &img, heif_colorspace_RGB, heif_chroma_interleaved_RGB, nullptr);
+
+    int stride;
+    const uint8_t* data = heif_image_get_plane_readonly(img, heif_channel_interleaved, &stride);
+}
+
+free(params.img_params);
+```
+
 Writing an HEIF file can be done like this:
 
 ```C

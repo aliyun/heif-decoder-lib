@@ -37,7 +37,7 @@ void transform_skip_rdpcm_h_8_fallback(uint8_t *dst, const int16_t *coeffs, int 
 void transform_bypass_rdpcm_v_fallback(int32_t *r, const int16_t *coeffs,int nT);
 void transform_bypass_rdpcm_h_fallback(int32_t *r, const int16_t *coeffs,int nT);
 
-void transform_4x4_luma_add_8_fallback(uint8_t *dst, /*const*/ int16_t *coeffs, ptrdiff_t stride);
+void transform_4x4_luma_add_8_fallback(uint8_t *dst, /*const*/ int16_t *coeffs, ptrdiff_t stride, int bit_depth);
 void transform_4x4_add_8_fallback(uint8_t *dst, /*const*/ int16_t *coeffs, ptrdiff_t stride, int16_t col_limit);
 void transform_8x8_add_8_fallback(uint8_t *dst, /*const*/ int16_t *coeffs, ptrdiff_t stride, int16_t col_limit);
 void transform_16x16_add_8_fallback(uint8_t *dst, /*const*/ int16_t *coeffs, ptrdiff_t stride, int16_t col_limit);

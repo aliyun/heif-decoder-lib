@@ -140,8 +140,15 @@ void init_acceleration_functions_fallback(struct acceleration_functions* accel)
   accel->hadamard_transform_8[2] = hadamard_16x16_8_fallback;
   accel->hadamard_transform_8[3] = hadamard_32x32_8_fallback;
 
-  accel->intra_pred_dc_8  = intra_pred_8_fallback ;
-  accel->intra_pred_dc_16 = intra_pred_16_fallback;
+  accel->intra_pred_dc_8[0]  = intra_pred_8_fallback ;
+  accel->intra_pred_dc_8[1]  = intra_pred_8_fallback ;
+  accel->intra_pred_dc_8[2]  = intra_pred_8_fallback ;
+  accel->intra_pred_dc_8[3]  = intra_pred_8_fallback ;
+
+  accel->intra_pred_dc_16[0] = intra_pred_16_fallback;
+  accel->intra_pred_dc_16[1] = intra_pred_16_fallback;
+  accel->intra_pred_dc_16[2] = intra_pred_16_fallback;
+  accel->intra_pred_dc_16[3] = intra_pred_16_fallback;
 
   accel->intra_prediction_angular_8[0]  = intra_prediction_angular_8_fallback ;
   accel->intra_prediction_angular_8[1]  = intra_prediction_angular_8_fallback ;
@@ -157,8 +164,6 @@ void init_acceleration_functions_fallback(struct acceleration_functions* accel)
 
   accel->intra_prediction_planar_8  = intra_prediction_planar_8_fallback ;
   accel->intra_prediction_planar_16 = intra_prediction_planar_16_fallback;
-
-
 
   accel->loop_filter_luma_8 = loop_filter_luma<uint8_t>;
   accel->loop_filter_luma_16 = loop_filter_luma<uint16_t>;

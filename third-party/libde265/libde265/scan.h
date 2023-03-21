@@ -23,6 +23,10 @@
 
 #include <stdint.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef OPT_1
 extern const uint8_t* scan_order_y[3][7];
 extern const uint8_t* scan_order_x[3][7];

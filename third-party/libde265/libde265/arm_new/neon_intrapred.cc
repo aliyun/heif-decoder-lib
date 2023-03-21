@@ -40,20 +40,24 @@ inline uint32x2_t Sum(const uint16x8_t val) {
 
 LIBDE265_INLINE uint32x2_t intra_pred_DcVal_neon(uint8_t *dst, int dstStride, int nT, int cIdx, const uint8_t *border)
 {
-  int Log2_nT = Log2(nT);
   uint32x2_t DcSum ;
+  uint32x2_t DcnT  ;
 
   if(nT == 4) {
     uint8x8_t  val = vdup_n_u8(0);
     val = Load4<0>(border+1,val);
     val = Load4<1>(border-nT,val);
     DcSum = Sum(vpaddl_u8(val));
+    DcnT  = vdup_n_u32(4);
+    return vshr_n_u32(vadd_u32(DcSum, DcnT),3);
   }
   else if(nT == 8) {
     uint8x16_t val_t0 = vdupq_n_u8(0);
     val_t0 = Load8<0>(border+1,val_t0);
     val_t0 = Load8<1>(border-nT,val_t0);
     DcSum = Sum(vpaddlq_u8(val_t0));
+    DcnT  = vdup_n_u32(8);
+    return vshr_n_u32(vadd_u32(DcSum, DcnT),4);
   }
   else if(nT == 16) {
     uint8x16_t  val_t0 = vdupq_n_u8(0);
@@ -65,6 +69,8 @@ LIBDE265_INLINE uint32x2_t intra_pred_DcVal_neon(uint8_t *dst, int dstStride, in
     uint32x2_t sum_t0 = Sum(vpaddlq_u8(val_t0));
     uint32x2_t sum_l0 = Sum(vpaddlq_u8(val_l0));
     DcSum = vadd_u32(sum_t0,sum_l0);
+    DcnT  = vdup_n_u32(16);
+    return vshr_n_u32(vadd_u32(DcSum, DcnT),5);
   }
   else { //32x32
 
@@ -86,10 +92,9 @@ LIBDE265_INLINE uint32x2_t intra_pred_DcVal_neon(uint8_t *dst, int dstStride, in
     uint32x2_t sum_l0 = vadd_u32(Sum(vpaddlq_u8(val_l0)), Sum(vpaddlq_u8(val_l1)));
 
     DcSum = vadd_u32(sum_t0,sum_l0);
+    DcnT  = vdup_n_u32(32);
+    return vshr_n_u32(vadd_u32(DcSum, DcnT),6);
   }
-
-  uint32x2_t DcnT = vdup_n_u32((uint32_t)nT);
-  return vshr_n_u32(vadd_u32(DcSum, DcnT),(Log2_nT+1));
 
 }
 
