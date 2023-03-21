@@ -170,44 +170,44 @@ LIBDE265_API int de265_isOK(de265_error err)
 }
 
 
-
-static int de265_init_count;
-
+#if !OPT_RESIDUAL_CODING
+static int de265_init_count=0;
 static std::mutex& de265_init_mutex()
 {
   static std::mutex de265_init_mutex;
   return de265_init_mutex;
 }
-
+#endif
 
 LIBDE265_API de265_error de265_init()
 {
+#if !OPT_RESIDUAL_CODING  
   std::lock_guard<std::mutex> lock(de265_init_mutex());
-
-  de265_init_count++;
-
   if (de265_init_count > 1) {
     // we are not the first -> already initialized
 
     return DE265_OK;
   }
-
-
+  de265_init_count++;
+#endif
   // do initializations
 #ifndef OPT_1
   init_scan_orders();
 #endif
 
+#if !OPT_RESIDUAL_CODING  
   if (!alloc_and_init_significant_coeff_ctxIdx_lookupTable()) {
     de265_init_count--;
     return DE265_ERROR_LIBRARY_INITIALIZATION_FAILED;
   }
+#endif
 
   return DE265_OK;
 }
 
 LIBDE265_API de265_error de265_free()
 {
+#if !OPT_RESIDUAL_CODING    
   std::lock_guard<std::mutex> lock(de265_init_mutex());
 
   if (de265_init_count<=0) {
@@ -215,11 +215,10 @@ LIBDE265_API de265_error de265_free()
   }
 
   de265_init_count--;
-
   if (de265_init_count==0) {
     free_significant_coeff_ctxIdx_lookupTable();
   }
-
+#endif
   return DE265_OK;
 }
 

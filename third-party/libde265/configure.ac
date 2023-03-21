@@ -33,6 +33,8 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # Checks for programs.
 AM_PROG_AS
+CFLAGS=""
+CXXFLAGS=""
 AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_INSTALL
@@ -213,6 +215,36 @@ if eval "test x$disable_sse != xyes"; then
     esac
 fi
 AM_CONDITIONAL([ENABLE_SSE_OPT], [test x"$ax_cv_support_sse41_ext" = x"yes"])
+AM_CONDITIONAL([HAVE_SSE4_1], [test x"$ax_cv_support_sse41_ext" = x"yes"])
+
+if eval "test x$disable_sse != xyes"; then
+    case $target_cpu in
+      powerpc*)
+        ;;
+
+      i[[3456]]86*|x86_64*|amd64*)
+
+        AX_CHECK_COMPILE_FLAG(-mavx2, ax_cv_support_avx2_ext=yes, [])
+        if test x"$ax_cv_support_avx2_ext" = x"yes"; then
+#          SIMD_FLAGS="$SIMD_FLAGS -mavx2"
+          AC_DEFINE(HAVE_AVX2,1,[Support AVX2 (Streaming SIMD AVX2) instructions])
+        else
+          AC_MSG_WARN([Your compiler does not support AVX2 instructions, can you try another compiler?])
+        fi
+        ;;
+
+    esac
+fi
+#AM_CONDITIONAL([ENABLE_SSE_OPT], [test x"$ax_cv_support_avx2_ext" = x"yes"])
+AM_CONDITIONAL([HAVE_AVX2], [test x"$ax_cv_support_avx2_ext" = x"yes"])
+
+AC_DEFINE(OPT_1, 1, [Enable OPT_1 optimization])
+AC_DEFINE(OPT_2, 1, [Enable OPT_2 optimization])
+AC_DEFINE(OPT_3, 1, [Enable OPT_3 optimization])
+AC_DEFINE(OPT_4, 1, [Enable OPT_4 optimization])
+AC_DEFINE(OPT_CABAC, 1, [Enable OPT_CABAC optimization])
+# AC_DEFINE(OPT_CABAC_BYPASS, 1, [Enable OPT_CABAC_BYPASS optimization])
+AC_DEFINE(OPT_RESIDUAL_CODING, 1, [Enable OPT_RESIDUAL_CODING optimization])
 
 # CFLAGS+=$SIMD_FLAGS
 # CFLAGS+=" -march=x86-64"
@@ -324,9 +356,15 @@ fi
 AC_ARG_ENABLE(debug, AS_HELP_STRING([--enable-debug], [enable DEBUG mode(default=no)]),
                 [],
                 [enable_debug=no])
-AS_IF([test "x$enable_debug" = "xyes"], [CXXFLAGS="-g2 -O0 -DDEBUG -Wall"],
-      [test "x$enable_debug" = "xno"], [CXXFLAGS="-O2 -Wall"],
-      [])
+#AS_IF([test "x$enable_debug" = "xyes"], [CXXFLAGS="-g2 -O0 -DDEBUG -Wall"],
+#      [test "x$enable_debug" = "xno"], [CXXFLAGS="-O2 -Wall"],
+#      [])
+
+if eval "test $enable_debug = yes"; then      
+  CXXFLAGS="$CXXFLAGS -g2 -O0 -DDEBUG -Wall"  
+else                                          
+  CXXFLAGS="$CXXFLAGS -O3 -Wall -DNDEBUG"     
+fi
 
 # --- enable example programs ---
 
@@ -416,7 +454,7 @@ AC_MSG_NOTICE([---------------------------------------])
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([libde265/Makefile])
 AC_CONFIG_FILES([libde265/arm_new/Makefile])
-AC_CONFIG_FILES([libde265/x86/Makefile])
+AC_CONFIG_FILES([libde265/x86_new/Makefile])
 AC_CONFIG_FILES([libde265/encoder/Makefile])
 AC_CONFIG_FILES([libde265/encoder/algo/Makefile])
 AC_CONFIG_FILES([libde265/de265-version.h])

@@ -7,8 +7,10 @@ project (libde265
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_EXTENSIONS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+message(WARNING "The architecture ${CMAKE_SYSTEM_PROCESSOR}")
 
 # The version number.
 set (NUMERIC_VERSION 0x01000800)
@@ -76,6 +78,8 @@ add_definitions(-DOPT_2)
 add_definitions(-DOPT_3)
 add_definitions(-DOPT_4)
 add_definitions(-DOPT_CABAC)
+#add_definitions(-DOPT_CABAC_BYPASS)
+add_definitions(-DOPT_RESIDUAL_CODING)
 
 add_subdirectory (libde265)
 add_subdirectory (dec265)

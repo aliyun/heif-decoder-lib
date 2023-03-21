@@ -47,7 +47,7 @@ void loop_filter_luma(pixel_t *dst, bool vertical, ptrdiff_t stride, int beta, i
 
   pixel_t *pix = dst;
 
-  beta <<= bitDepth - 8;
+  //beta <<= bitDepth - 8;
     
   for (int j = 0; j < 2; j++) {
     const int dp0  = abs(P2  - 2 * P1  + P0);
@@ -56,7 +56,7 @@ void loop_filter_luma(pixel_t *dst, bool vertical, ptrdiff_t stride, int beta, i
     const int dq3  = abs(TQ2 - 2 * TQ1 + TQ0);
     const int d0   = dp0 + dq0;
     const int d3   = dp3 + dq3;
-    const int tc   = _tc[j]   << (bitDepth - 8);
+    const int tc   = _tc[j]; //   << (bitDepth - 8);
     const int no_p = _no_p[j];
     const int no_q = _no_q[j];
 

@@ -1017,13 +1017,20 @@ int main(int argc, char** argv)
   int output_bit_depth = 10;
   bool enc_av1f = false;
   bool crop_to_even_size = false;
+  bool movie_flag = false;
+  int fps = 0;
+  int duration = 0;
+  int total_duration = 0;
+  int frame_idx = 0;
+  int img_src_width = 0;
+  int img_src_height = 0;
 
   std::vector<std::string> raw_params;
 
-
   while (true) {
     int option_index = 0;
-    int c = getopt_long(argc, argv, "hq:Lo:vPp:t:b:AEe:", long_options, &option_index);
+    int c = getopt_long(argc, argv, "hq:Lo:vPp:t:b:AEe:mf:d:", long_options, &option_index);
+
     if (c == -1)
       break;
 
@@ -1063,6 +1070,15 @@ int main(int argc, char** argv)
         break;
       case 'e':
         encoderId = optarg;
+        break;
+      case 'm':
+        movie_flag = true;
+        break;
+      case 'f':
+        fps = atoi(optarg);
+        break;
+      case 'd':
+        duration = atoi(optarg);
         break;
       case OPTION_NCLX_MATRIX_COEFFICIENTS:
         nclx_matrix_coefficients = (uint16_t)strtoul(optarg, nullptr, 0);
@@ -1163,6 +1179,13 @@ int main(int argc, char** argv)
 
 
   struct heif_error error;
+
+  heif_set_movie_flag(context.get(), movie_flag);
+  if(movie_flag)
+  {
+    heif_add_movie_box(context.get());
+  }
+  uint64_t now = (uint64_t)time(NULL) + 2082844800;
 
   for (; optind < argc; optind++) {
     std::string input_filename = argv[optind];
@@ -1272,10 +1295,20 @@ int main(int argc, char** argv)
       }
     }
 
+    if(movie_flag && frame_idx == 0)
+    {
+      img_src_width = heif_image_get_primary_width(image.get());
+      img_src_height = heif_image_get_primary_height(image.get());
+    }
+
     if (premultiplied_alpha) {
       heif_image_set_premultiplied_alpha(image.get(), premultiplied_alpha);
     }
 
+    if (movie_flag)
+    {
+      heif_set_druation_in_TimeScales(image.get(), duration);
+    }
 
     struct heif_image_handle* handle;
     error = heif_context_encode_image(context.get(),
@@ -1314,11 +1347,24 @@ int main(int argc, char** argv)
       }
     }
 
+    total_duration = total_duration + duration;
+    frame_idx++;
+
     heif_image_handle_release(handle);
     heif_encoding_options_free(options);
   }
 
   heif_encoder_release(encoder);
+
+  if(movie_flag)
+  {
+    heif_set_mvhd_data(context.get(), now, now, fps, total_duration, 1);
+    heif_set_tkhd_data(context.get(), now, now, 1, total_duration, img_src_width<<16, img_src_height<<16);
+    heif_set_mdhd_data(context.get(), now, now, fps, total_duration, 0);
+    heif_set_hvc1_data(context.get(), img_src_width, img_src_height, 1);
+    heif_calc_stts_data(context.get());
+    heif_set_stss_data(context.get());
+  }
 
   error = heif_context_write_to_file(context.get(), output_filename.c_str());
   if (error.code) {
