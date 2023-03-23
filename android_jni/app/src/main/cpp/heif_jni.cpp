@@ -67,7 +67,6 @@ Java_com_aliyun_libheif_HeifNative_toRgba(JNIEnv *env, jclass type, jlong length
     AndroidBitmap_unlockPixels(env, bitmap);
     if(err.code != 0) {
         env->ReleaseByteArrayElements(fileBuf, (jbyte*)jfilebuf, 0);
-        heif_image_release(image);
         heif_image_handle_release(handle);
         heif_context_free(ctx);
         __android_log_print(ANDROID_LOG_DEBUG, TAG, "decode file failed!");
@@ -179,7 +178,6 @@ Java_com_aliyun_libheif_HeifNative_imagesToRgba(JNIEnv *env, jclass type, jint i
     AndroidBitmap_unlockPixels(env, bitmap);
     if(err.code != 0) {
         env->ReleaseByteArrayElements(fileBuf, (jbyte*)jfilebuf, 0);
-        heif_image_release(image);
         heif_image_handle_release(handle);
         heif_context_free(ctx);
         delete [] params.img_params; 
