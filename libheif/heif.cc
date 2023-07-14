@@ -981,7 +981,9 @@ void heif_decoding_options_add_external_dest(struct heif_decoding_options* optio
 
 void heif_decoding_options_free(heif_decoding_options* options)
 {
-  delete options;
+  if(options) {
+    delete options;
+  }
 }
 
 
@@ -1059,12 +1061,18 @@ void heif_image_add_decoding_warning(struct heif_image* image,
 
 void heif_image_release(const struct heif_image* img)
 {
-  delete img;
+  if(img) {
+    delete img;
+    img = NULL;
+  }
 }
 
 void heif_image_handle_release(const struct heif_image_handle* handle)
 {
-  delete handle;
+  if(handle) {
+    delete handle;
+    handle = NULL;
+  }
 }
 
 
@@ -1141,6 +1149,49 @@ heif_error heif_image_crop(struct heif_image* img,
   return heif_error{heif_error_Ok, heif_suberror_Unspecified, Error::kSuccess};
 }
 
+heif_error heif_image_rgba_premultiply_alpha(struct heif_image* img)
+{
+  if(!img) {
+    heif_error ierr = {heif_error_Invalid_input,
+                      heif_suberror_Unsupported_image_type,
+                      "input image is already premultiplied "};
+    return ierr;
+  }
+
+  heif_colorspace  img_colorspace = img->image->get_colorspace();
+  heif_chroma  img_chroma = img->image->get_chroma_format();
+
+  if(img->image->is_premultiplied_alpha()) {
+
+    heif_error perr = {heif_error_Invalid_input,
+                      heif_suberror_Unsupported_image_type,
+                      "input image is already premultiplied "};
+    return perr;
+  }
+
+  if((img_chroma != heif_chroma_interleaved_RGBA) ||
+     !((img_colorspace == heif_colorspace_RGB) || (img_colorspace == heif_colorspace_monochrome)) ){
+
+    heif_error cerr = {heif_error_Usage_error,
+                      heif_suberror_Unspecified,
+                      "input image type error (must be rgba)"};
+    return cerr;
+  }
+
+  if(!img->image->has_alpha() || !img->image->has_channel(heif_channel_interleaved)) {
+    heif_error merr = {heif_error_Invalid_input,
+                      heif_suberror_Unsupported_image_type,
+                      "input image channel error (must be rgba)"};
+    return merr;
+  }
+
+  Error err = img->image->rgba_premultiply_alpha();
+  if(err) {
+    return err.error_struct(img->image.get());
+  }
+
+  return heif_error{heif_error_Ok, heif_suberror_Unspecified, Error::kSuccess};
+}
 
 int heif_image_get_bits_per_pixel(const struct heif_image* img, enum heif_channel channel)
 {

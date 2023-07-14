@@ -27,7 +27,7 @@ extern "C" {
 
 #include <stddef.h>
 #include <stdint.h>
-#include <libheif/heif_version.h>
+#include "heif_version.h"
 
 //#define HAVE_YUV 1
 

@@ -1,6 +1,6 @@
 
 #include <jni.h>
-#include <libheif/heif.h>
+#include "heif.h"
 #include <android/log.h>
 #include <cstring>
 #include <vector>
@@ -30,7 +30,7 @@ Java_com_aliyun_libheif_HeifNative_toRgba(JNIEnv *env, jclass type, jlong length
         __android_log_print(ANDROID_LOG_DEBUG, TAG, "jni log decode image failed flag ctx_read %d ", err.code);
     }
 
-    heif_image_handle* handle;
+    heif_image_handle* handle = NULL;
     err = heif_context_get_primary_image_handle(ctx, &handle);
     if(err.code != 0) {
         __android_log_print(ANDROID_LOG_DEBUG, TAG, "jni log decode image failed flag handle");
@@ -60,24 +60,37 @@ Java_com_aliyun_libheif_HeifNative_toRgba(JNIEnv *env, jclass type, jlong length
     heif_decoding_options_add_external_dest(decode_options, ext_buf, buf_len, bitmap_info.stride);
 
     int bitdepth = heif_image_handle_get_luma_bits_per_pixel(handle);
+    int has_alpha = heif_image_handle_has_alpha_channel(handle);
+    int is_premul = heif_image_handle_is_premultiplied_alpha(handle);
     __android_log_print(ANDROID_LOG_DEBUG, TAG, "heif_decoding source image:%dx%d bitdepth:%d , bitmap, stride:%d, bitmap_info_pass %d", bitmap_info.width, bitmap_info.height, bitdepth, bitmap_info.stride, bitmap_info_pass );
-    heif_image* image;
+    struct heif_image* image = NULL;
     err = heif_decode_image(handle, &image, heif_colorspace_RGB, heif_chroma_interleaved_RGBA, decode_options);
     heif_decoding_options_free(decode_options);
-    AndroidBitmap_unlockPixels(env, bitmap);
+
     if(err.code != 0) {
+        AndroidBitmap_unlockPixels(env, bitmap);
         env->ReleaseByteArrayElements(fileBuf, (jbyte*)jfilebuf, 0);
+        heif_image_release(image);
         heif_image_handle_release(handle);
         heif_context_free(ctx);
         __android_log_print(ANDROID_LOG_DEBUG, TAG, "decode file failed!");
         return false ;
     }
 
+    if(has_alpha && !is_premul ) {
+        err = heif_image_rgba_premultiply_alpha(image);
+    }
+
+    AndroidBitmap_unlockPixels(env, bitmap);
     env->ReleaseByteArrayElements(fileBuf, (jbyte*)jfilebuf, 0);
     heif_image_release(image);
     heif_image_handle_release(handle);
     heif_context_free(ctx);
 
+    if(err.code != 0) {
+        __android_log_print(ANDROID_LOG_DEBUG, TAG, "heif decode alpha picture premultiply failed!");
+        return false ;
+    }
     return true ;
 }
 
@@ -140,7 +153,7 @@ Java_com_aliyun_libheif_HeifNative_imagesToRgba(JNIEnv *env, jclass type, jint i
 
     std::vector<heif_item_id> image_IDs(num_images);
     num_images = heif_context_get_list_of_top_level_image_IDs(ctx, image_IDs.data(),num_images);
-    heif_image_handle* handle;
+    heif_image_handle* handle = NULL;
     err = heif_context_get_image_handle(ctx, image_IDs[img_idx], &handle);
     if(err.code != 0) {
         __android_log_print(ANDROID_LOG_DEBUG, TAG, "jni log decode image failed flag handle");
@@ -172,12 +185,16 @@ Java_com_aliyun_libheif_HeifNative_imagesToRgba(JNIEnv *env, jclass type, jint i
     image_parameters* img_params = NULL;
     img_params = params.img_params + img_idx ;
     __android_log_print(ANDROID_LOG_DEBUG, TAG, "heif decode image sequence, idx %d, width %d, height %d ", img_idx, img_params->img_width, img_params->img_height );
-    heif_image* image;
+    int has_alpha = heif_image_handle_has_alpha_channel(handle);
+    int is_premul = heif_image_handle_is_premultiplied_alpha(handle);
+    struct heif_image* image = NULL;
     err = heif_decode_image(handle, &image, heif_colorspace_RGB, heif_chroma_interleaved_RGBA, decode_options);
     heif_decoding_options_free(decode_options);
-    AndroidBitmap_unlockPixels(env, bitmap);
+
     if(err.code != 0) {
+        AndroidBitmap_unlockPixels(env, bitmap);
         env->ReleaseByteArrayElements(fileBuf, (jbyte*)jfilebuf, 0);
+        heif_image_release(image);
         heif_image_handle_release(handle);
         heif_context_free(ctx);
         delete [] params.img_params; 
@@ -186,7 +203,11 @@ Java_com_aliyun_libheif_HeifNative_imagesToRgba(JNIEnv *env, jclass type, jint i
         return 0 ;
     }
 
+    if(has_alpha && !is_premul ) {
+        err = heif_image_rgba_premultiply_alpha(image);
+    }
 
+    AndroidBitmap_unlockPixels(env, bitmap);
     env->ReleaseByteArrayElements(fileBuf, (jbyte*)jfilebuf, 0);
     heif_image_release(image);
     heif_image_handle_release(handle);
@@ -194,6 +215,10 @@ Java_com_aliyun_libheif_HeifNative_imagesToRgba(JNIEnv *env, jclass type, jint i
     delete [] params.img_params; 
     params.img_params = NULL ;
 
+    if(err.code != 0) {
+        __android_log_print(ANDROID_LOG_DEBUG, TAG, "heif decode alpha picture premultiply failed!");
+        return 0 ;
+    }
     return true;
 }
 

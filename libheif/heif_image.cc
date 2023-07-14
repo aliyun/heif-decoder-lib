@@ -924,6 +924,39 @@ Error HeifPixelImage::crop(int left, int right, int top, int bottom,
 }
 
 
+Error HeifPixelImage::rgba_premultiply_alpha(void )
+{
+
+  int width = this->m_width ;
+  int height= this->m_height;
+  int bpp   = this->get_bits_per_pixel(heif_channel_interleaved);
+
+  if(!this->has_channel(heif_channel_interleaved) ) {
+    return Error(heif_error_Usage_error,
+                heif_suberror_Unsupported_image_type);
+  }
+  if(this->get_colorspace() == heif_colorspace_undefined ||
+     this->get_colorspace() == heif_colorspace_YCbCr ) {
+    return Error(heif_error_Usage_error,
+                heif_suberror_Unsupported_image_type);
+  }
+
+  uint8_t* rgba_p;
+  int rgba_p_stride = 0;
+
+  rgba_p = (uint8_t*) this->get_plane(heif_channel_interleaved, &rgba_p_stride);
+
+  if(libyuv::ARGBAttenuate(rgba_p, rgba_p_stride, rgba_p, rgba_p_stride, width, height) != 0) {
+    return Error(heif_error_Usage_error,
+                heif_suberror_Unsupported_image_type);
+  }
+
+  this->set_premultiplied_alpha(true);
+
+  return Error::Ok;
+}
+
+
 Error HeifPixelImage::fill_RGB_16bit(uint16_t r, uint16_t g, uint16_t b, uint16_t a)
 {
   for (const auto& channel : {heif_channel_R, heif_channel_G, heif_channel_B, heif_channel_Alpha}) {
