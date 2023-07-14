@@ -1070,6 +1070,11 @@ LIBHEIF_API
 struct heif_error heif_image_crop(struct heif_image* img,
                                   int left, int right, int top, int bottom);
 
+// Android require image with alpha channel which data is premultiplied. Here
+// heif_image_premultiply_alpha only work for android RGBA image;
+LIBHEIF_API
+struct heif_error heif_image_rgba_premultiply_alpha(struct heif_image* img);
+
 // Get the number of bits per pixel in the given image channel. Returns -1 if
 // a non-existing channel was given.
 // Note that the number of bits per pixel may be different for each color channel.
