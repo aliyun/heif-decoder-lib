@@ -434,7 +434,7 @@ int convert_colorspace_core<uint8_t> (const bool        has_alpha,
                                        in_cb_stride,
                                        out_p,
                                        out_p_stride,
-                                       matrixYUV,
+                                       matrixYVU,
                                        width,
                                        height) == 0) {
               hit = 1;
@@ -449,7 +449,7 @@ int convert_colorspace_core<uint8_t> (const bool        has_alpha,
                                        in_cb_stride,
                                        out_p,
                                        out_p_stride,
-                                       matrixYUV,
+                                       matrixYVU,
                                        width,
                                        height) == 0) {
               hit = 1;
@@ -464,7 +464,7 @@ int convert_colorspace_core<uint8_t> (const bool        has_alpha,
                                        in_cb_stride,
                                        out_p,
                                        out_p_stride,
-                                       matrixYUV,
+                                       matrixYVU,
                                        width,
                                        height) == 0) {
               hit = 1;
@@ -564,7 +564,7 @@ int convert_colorspace_core<uint16_t> (const bool        has_alpha,
                                        in_cb_stride/2,
                                        out_p,
                                        out_p_stride,
-                                       matrixYUV,
+                                       matrixYVU,
                                        width,
                                        height) == 0) {
               hit = 1;
@@ -579,7 +579,7 @@ int convert_colorspace_core<uint16_t> (const bool        has_alpha,
                                        in_cb_stride/2,
                                        out_p,
                                        out_p_stride,
-                                       matrixYUV,
+                                       matrixYVU,
                                        width,
                                        height) == 0) {
               hit = 1;
@@ -594,7 +594,7 @@ int convert_colorspace_core<uint16_t> (const bool        has_alpha,
                                        in_cb_stride/2,
                                        out_p,
                                        out_p_stride,
-                                       matrixYUV,
+                                       matrixYVU,
                                        width,
                                        height) == 0) {
               hit = 1;
