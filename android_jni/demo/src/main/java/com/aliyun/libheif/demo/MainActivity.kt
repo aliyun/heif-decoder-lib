@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.aliyun.libheif.HeifInfo
 import com.aliyun.libheif.HeifNative
 import com.aliyun.libheif.HeifSize
+import com.bumptech.glide.Glide
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
@@ -18,6 +19,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         decodeImage()
+        glideDecodeHeic()
     }
 
 
@@ -43,5 +45,11 @@ class MainActivity : AppCompatActivity() {
 
         val heifBuffer = HeifNative.toRgba(fileBuffer.size.toLong(), fileBuffer, bitmap)
         image.setImageBitmap(bitmap)
+    }
+
+    private fun glideDecodeHeic() {
+        val imgUrl = "https://oss-console-img-demo-cn-hangzhou.oss-cn-hangzhou.aliyuncs.com/example.jpg?x-oss-process=image/format,heic"
+        val glideImg = findViewById<ImageView>(R.id.glideImage)
+        Glide.with(this).load(imgUrl).into(glideImg)
     }
 }
