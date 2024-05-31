@@ -555,6 +555,8 @@ struct heif_error heif_context_get_image_handle(struct heif_context* ctx,
 LIBHEIF_API
 void heif_context_debug_dump_boxes_to_file(struct heif_context* ctx, int fd);
 
+LIBHEIF_API
+void heif_context_get_dump_boxes(struct heif_context* ctx, void *ptr);
 
 LIBHEIF_API
 void heif_context_set_maximum_image_size_limit(struct heif_context* ctx, int maximum_width);

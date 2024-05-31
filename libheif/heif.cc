@@ -472,6 +472,18 @@ heif_error heif_context_read_from_reader(struct heif_context* ctx,
   return err.error_struct(ctx->context.get());
 }
 
+void heif_context_get_dump_boxes(struct heif_context* ctx, void * ptr)
+{
+  if (!ctx || !ptr) {
+    return ;
+  }
+
+  std::string dump = ctx->context->debug_dump_boxes();
+  std::string *dump_str = (std::string *)ptr;
+  *dump_str = dump ;
+  return ;
+}
+
 // TODO: heif_error heif_context_read_from_file_descriptor(heif_context*, int fd);
 
 void heif_context_debug_dump_boxes_to_file(struct heif_context* ctx, int fd)

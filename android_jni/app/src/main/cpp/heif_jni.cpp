@@ -3,14 +3,31 @@
 #include "heif.h"
 #include <android/log.h>
 #include <cstring>
+#include <csignal>
 #include <vector>
 #include <android/bitmap.h>
+#include <thread>
 
 #define TAG "libheif"
+
+thread_local std::string dump;
+
+void segv_signal_handler(int signum) {
+    __android_log_print(ANDROID_LOG_DEBUG, TAG, "libheif signal_handler, signum is %d", signum);
+    if(!dump.empty()) {
+        __android_log_print(ANDROID_LOG_DEBUG, TAG, "%s", dump.c_str());
+    }
+    _Exit(1);
+}
 
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_aliyun_libheif_HeifNative_toRgba(JNIEnv *env, jclass type, jlong length, jbyteArray fileBuf, jobject bitmap) {
+
+    __android_log_print(ANDROID_LOG_DEBUG, TAG, "heif_jni log:  begin to convert heif, length:%ld", length);
+//    std::signal(SIGSEGV, segv_signal_handler);
+    std::signal(SIGTRAP, segv_signal_handler);
+//    std::signal(SIGINT, segv_signal_handler);
 
     jbyte* jfilebuf = env->GetByteArrayElements(fileBuf, NULL);
     char* cfilebuf = (char *)jfilebuf;
@@ -24,11 +41,12 @@ Java_com_aliyun_libheif_HeifNative_toRgba(JNIEnv *env, jclass type, jlong length
     }
 
     struct heif_error err;
-    heif_context* ctx = heif_context_alloc();
+    struct heif_context* ctx = heif_context_alloc();
     err = heif_context_read_from_memory_without_copy(ctx, cfilebuf, file_len, nullptr);
     if(err.code != 0) {
         __android_log_print(ANDROID_LOG_DEBUG, TAG, "jni log decode image failed flag ctx_read %d ", err.code);
     }
+    heif_context_get_dump_boxes(ctx, &dump);
 
     heif_image_handle* handle = NULL;
     err = heif_context_get_primary_image_handle(ctx, &handle);

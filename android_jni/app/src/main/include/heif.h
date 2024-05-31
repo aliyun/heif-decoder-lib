@@ -369,7 +369,7 @@ struct libheif_parameters
   bool movie_flag;
   uint32_t frame_count;
   uint32_t movie_duration;
-  image_parameters* img_params;
+  struct image_parameters* img_params;
 };
 
 // input data should be at least 12 bytes
@@ -489,7 +489,7 @@ struct heif_error heif_context_read_from_file(struct heif_context*, const char* 
                                               const struct heif_reading_options*);
 
 LIBHEIF_API
-struct heif_error heif_context_get_heif_params(struct heif_context*, libheif_parameters*);
+struct heif_error heif_context_get_heif_params(struct heif_context*, struct libheif_parameters*);
 
 LIBHEIF_API
 void heif_context_set_threads(struct heif_context* ctx, const struct heif_image_handle* in_handle, int nthreads);
@@ -555,6 +555,8 @@ struct heif_error heif_context_get_image_handle(struct heif_context* ctx,
 LIBHEIF_API
 void heif_context_debug_dump_boxes_to_file(struct heif_context* ctx, int fd);
 
+LIBHEIF_API
+void heif_context_get_dump_boxes(struct heif_context* ctx, void *ptr);
 
 LIBHEIF_API
 void heif_context_set_maximum_image_size_limit(struct heif_context* ctx, int maximum_width);
