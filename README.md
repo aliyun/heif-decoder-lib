@@ -2,7 +2,7 @@
 
 [![Build Status](https://github.com/strukturag/libheif/workflows/build/badge.svg)](https://github.com/strukturag/libheif/actions) [![Build Status](https://ci.appveyor.com/api/projects/status/github/strukturag/libheif?svg=true)](https://ci.appveyor.com/project/strukturag/libheif) [![Coverity Scan Build Status](https://scan.coverity.com/projects/16641/badge.svg)](https://scan.coverity.com/projects/strukturag-libheif)
 
-
+heif-decoder-lib is a cpu-accelerated version base on libheif.
 libheif is an ISO/IEC 23008-12:2017 HEIF and AVIF (AV1 Image File Format) file format decoder and encoder.
 
 HEIF and AVIF are new image file formats employing HEVC (h.265) or AV1 image coding, respectively, for the
@@ -291,7 +291,7 @@ to update the gdk-pixbuf loader database.
 The libheif is distributed under the terms of the GNU Lesser General Public License.
 The sample applications are distributed under the terms of the MIT License.
 
-See COPYING for more details.
+See LICENSE for more details.
 
 Copyright (c) 2017-2020 Struktur AG
 Contact: Dirk Farin <dirk.farin@gmail.com>
