@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include <cstring>
+#include <cstddef>
 #include <arm_neon.h>
 #include "./libde265/util.h"
 #include "neon_dbk.h"

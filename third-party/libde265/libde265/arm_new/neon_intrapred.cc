@@ -312,7 +312,6 @@ void intra_prediction_angular_18_26_neon(uint8_t* dst, int dstStride,
   uint8_t *ref=&ref_mem[2*MAX_INTRA_PRED_BLOCK_SIZE];
 
   int intraPredAngle = intraPredAngle_table[intraPredMode];
-  int invAngle = invAngle_table[intraPredMode-11];
 
   // prepare ref pixel
   for (int x=0;x<=nT;x++)
@@ -320,6 +319,7 @@ void intra_prediction_angular_18_26_neon(uint8_t* dst, int dstStride,
 
   int s_ref = (nT*intraPredAngle)>>5;
   if (s_ref < -1) {
+    int invAngle = invAngle_table[intraPredMode-11];
     for (int x= s_ref; x<=-1; x++) {
       ref[x] = border[0-((x*invAngle+128)>>8)];
     }
@@ -385,7 +385,6 @@ void intra_prediction_angular_10_17_neon(uint8_t* dst, int dstStride,
   uint8_t* ref=&ref_mem[2*MAX_INTRA_PRED_BLOCK_SIZE];
 
   int intraPredAngle = intraPredAngle_table[intraPredMode];
-  int invAngle = invAngle_table[intraPredMode-11];
 
   // prepare ref pixel
   for (int x=0;x<=nT;x++)
@@ -393,6 +392,7 @@ void intra_prediction_angular_10_17_neon(uint8_t* dst, int dstStride,
 
   int s_ref = (nT*intraPredAngle)>>5;
   if (s_ref < -1) {
+    int invAngle = invAngle_table[intraPredMode-11];
     for (int x= s_ref; x<=-1; x++) {
       ref[x] = border[((x*invAngle+128)>>8)]; // DIFF (neg)
     }

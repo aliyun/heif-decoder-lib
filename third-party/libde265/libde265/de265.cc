@@ -671,7 +671,7 @@ LIBDE265_API void de265_set_image_plane(de265_image* img, int cIdx, void* mem, i
 {
   // The internal "stride" is the number of pixels per line.
   stride = stride / ((de265_get_bits_per_pixel(img, cIdx)+7) / 8);
-  img->set_image_plane(cIdx, (uint8_t*)mem, stride, userdata);
+  img->set_image_plane(cIdx, (uint8_t*)mem, stride, userdata, (uint8_t *)mem);
 }
 
 LIBDE265_API void de265_set_image_allocation_functions(de265_decoder_context* de265ctx,

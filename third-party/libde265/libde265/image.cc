@@ -78,7 +78,7 @@ LIBDE265_API void* de265_alloc_image_plane(struct de265_image* img, int cIdx,
 
   if (p==NULL) { return NULL; }
 
-  img->set_image_plane(cIdx, p, stride, userdata);
+  img->set_image_plane(cIdx, p, stride, userdata, p);
 
   // copy input data if provided
 
@@ -99,7 +99,7 @@ LIBDE265_API void* de265_alloc_image_plane(struct de265_image* img, int cIdx,
 
 LIBDE265_API void de265_free_image_plane(struct de265_image* img, int cIdx)
 {
-  uint8_t* p = (uint8_t*)img->get_image_plane(cIdx);
+  uint8_t* p = (uint8_t*)img->get_image_plane_allocated(cIdx);
   assert(p);
   FREE_ALIGNED(p);
 }
@@ -130,34 +130,43 @@ static int  de265_image_get_buffer(de265_decoder_context* ctx,
 
   bool alloc_failed = false;
 
-  uint8_t* p[3] = { 0,0,0 };
-  p[0] = (uint8_t *)ALLOC_ALIGNED_16(luma_height   * luma_bpl   + MEMORY_PADDING);
-  if (p[0]==NULL) { alloc_failed=true; }
+  uint8_t* allocated_p[3] = {0, 0, 0};
+  allocated_p[0] = (uint8_t *)ALLOC_ALIGNED_16((luma_height + 2) * luma_bpl + 16 * ((img->BitDepth_Y+7)/8) + MEMORY_PADDING);
+  if (allocated_p[0]==NULL) { alloc_failed=true; }
 
   if (img->get_chroma_format() != de265_chroma_mono) {
-    p[1] = (uint8_t *)ALLOC_ALIGNED_16(chroma_height * chroma_bpl + MEMORY_PADDING);
-    p[2] = (uint8_t *)ALLOC_ALIGNED_16(chroma_height * chroma_bpl + MEMORY_PADDING);
+    allocated_p[1] = (uint8_t *)ALLOC_ALIGNED_16((chroma_height + 2) * chroma_bpl + 16 * ((img->BitDepth_C+7)/8) + MEMORY_PADDING);
+    allocated_p[2] = (uint8_t *)ALLOC_ALIGNED_16((chroma_height + 2) * chroma_bpl + 16 * ((img->BitDepth_C+7)/8) + MEMORY_PADDING);
 
-    if (p[1]==NULL || p[2]==NULL) { alloc_failed=true; }
+    if (allocated_p[1]==NULL || allocated_p[2]==NULL) { alloc_failed=true; }
   }
   else {
-    p[1] = NULL;
-    p[2] = NULL;
+    allocated_p[1] = NULL;
+    allocated_p[2] = NULL;
     chroma_stride = 0;
   }
 
   if (alloc_failed) {
     for (int i=0;i<3;i++)
-      if (p[i]) {
-        FREE_ALIGNED(p[i]);
+      if (allocated_p[i]) {
+        FREE_ALIGNED(allocated_p[i]);
       }
 
     return 0;
   }
 
-  img->set_image_plane(0, p[0], luma_stride, NULL);
-  img->set_image_plane(1, p[1], chroma_stride, NULL);
-  img->set_image_plane(2, p[2], chroma_stride, NULL);
+  uint8_t* p[3] = { 0,0,0 };
+  p[0] = allocated_p[0] + luma_bpl + 8 * ((img->BitDepth_Y+7)/8);
+  if(allocated_p[1]) {
+    p[1] = allocated_p[1] + chroma_bpl + 8 * ((img->BitDepth_C+7)/8);
+  }
+  if(allocated_p[2]) {
+    p[2] = allocated_p[2] + chroma_bpl + 8 * ((img->BitDepth_C+7)/8);
+  }
+
+  img->set_image_plane(0, p[0], luma_stride, NULL, allocated_p[0]);
+  img->set_image_plane(1, p[1], chroma_stride, NULL, allocated_p[1]);
+  img->set_image_plane(2, p[2], chroma_stride, NULL, allocated_p[2]);
 
   return 1;
 }
@@ -166,7 +175,7 @@ static void de265_image_release_buffer(de265_decoder_context* ctx,
                                        de265_image* img, void* userdata)
 {
   for (int i=0;i<3;i++) {
-    uint8_t* p = (uint8_t*)img->get_image_plane(i);
+    uint8_t* p = (uint8_t*)img->get_image_plane_allocated(i);
     if (p) {
       FREE_ALIGNED(p);
     }
@@ -180,10 +189,11 @@ de265_image_allocation de265_image::default_image_allocation = {
 };
 
 
-void de265_image::set_image_plane(int cIdx, uint8_t* mem, int stride, void *userdata)
+void de265_image::set_image_plane(int cIdx, uint8_t* mem, int stride, void *userdata, uint8_t* allocated_mem)
 {
   pixels[cIdx] = mem;
   plane_user_data[cIdx] = userdata;
+  allocated_pixels[cIdx] = allocated_mem ;
 
   if (cIdx==0) { this->stride        = stride; }
   else         { this->chroma_stride = stride; }
@@ -209,6 +219,7 @@ de265_image::de265_image()
     pixels[c] = NULL;
     pixels_confwin[c] = NULL;
     plane_user_data[c] = NULL;
+    allocated_pixels[c] = NULL;
   }
 
   width=height=0;
@@ -520,6 +531,7 @@ void de265_image::release()
         {
           pixels[i] = NULL;
           pixels_confwin[i] = NULL;
+          allocated_pixels[i] = NULL;
         }
     }
 
@@ -624,6 +636,7 @@ void de265_image::exchange_pixel_data_with(de265_image& b)
     std::swap(pixels[i], b.pixels[i]);
     std::swap(pixels_confwin[i], b.pixels_confwin[i]);
     std::swap(plane_user_data[i], b.plane_user_data[i]);
+    std::swap(allocated_pixels[i], b.allocated_pixels[i]);
   }
 
   std::swap(stride, b.stride);
