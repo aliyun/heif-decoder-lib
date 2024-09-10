@@ -254,10 +254,11 @@ struct de265_image {
   uint32_t get_ID() const { return ID; }
 
 
+        uint8_t* get_image_plane_allocated(int cIdx) { return allocated_pixels[cIdx]; }
   /* */ uint8_t* get_image_plane(int cIdx)       { return pixels[cIdx]; }
   const uint8_t* get_image_plane(int cIdx) const { return pixels[cIdx]; }
 
-  void set_image_plane(int cIdx, uint8_t* mem, int stride, void *userdata);
+  void set_image_plane(int cIdx, uint8_t* mem, int stride, void *userdata, uint8_t *allocated_mem);
 
   uint8_t* get_image_plane_at_pos(int cIdx, int xpos,int ypos)
   {
@@ -350,6 +351,7 @@ private:
 
   uint8_t* pixels[3];
   uint8_t  bpp_shift[3];  // 0 for 8 bit, 1 for 16 bit
+  uint8_t* allocated_pixels[3]; // actual pointer for pixels
 
   enum de265_chroma chroma_format;
 
