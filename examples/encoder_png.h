@@ -4,6 +4,7 @@
   MIT License
 
   Copyright (c) 2017 struktur AG, Joachim Bauch <bauch@struktur.de>
+  Copyright (c) 2023 Dirk Farin <dirk.farin@gmail.com>
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -35,6 +36,13 @@ class PngEncoder : public Encoder
 public:
   PngEncoder();
 
+  // 0 = fastest compression
+  // 9 = best compression
+  // -1 = zlib default
+  void set_compression_level(int level) {
+    m_compression_level = level;
+  }
+
   heif_colorspace colorspace(bool has_alpha) const override
   {
     return heif_colorspace_RGB;
@@ -60,6 +68,7 @@ public:
               const struct heif_image* image, const std::string& filename) override;
 
 private:
+  int m_compression_level = -1;
 };
 
 #endif  // EXAMPLE_ENCODER_PNG_H

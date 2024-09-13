@@ -55,6 +55,8 @@ if [ "$WITH_LIBDE265" = "2" ]; then
         --disable-acceleration_speed
     make -j $(nproc) && make -j $(nproc) install
     popd
+
+    ls -lR $BUILD_ROOT/libde265/dist
 fi
 
 if [ "$WITH_AOM" = "1" ]; then
@@ -105,13 +107,24 @@ if [ ! -z "$WITH_GRAPHICS" ]; then
         libgdk-pixbuf2.0-dev \
         libjpeg-dev \
         libpng-dev \
+        libtiff-dev \
+        "
+fi
+
+if [ ! -z "$WITH_UNCOMPRESSED_CODEC" ]; then
+    INSTALL_PACKAGES="$INSTALL_PACKAGES \
+        libbrotli-dev \
+        zlib-dev \
         "
 fi
 
 if [ "$MINGW" == "32" ]; then
     sudo dpkg --add-architecture i386
-    # https://github.com/actions/virtual-environments/issues/4589
-    sudo apt install -y --allow-downgrades libpcre2-8-0=10.34-7
+    # https://github.com/actions/runner-images/issues/4589
+    sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
+    sudo apt-get update
+    sudo apt-get install -y --allow-downgrades libgd3/focal libpcre2-8-0/focal libpcre2-16-0/focal libpcre2-32-0/focal libpcre2-posix2/focal
+    sudo apt-get purge -y libmono* moby* mono* php* libgdiplus libpcre2-posix3 libzip4
     INSTALL_PACKAGES="$INSTALL_PACKAGES \
         binutils-mingw-w64-i686 \
         g++-mingw-w64-i686 \
@@ -120,7 +133,6 @@ if [ "$MINGW" == "32" ]; then
         wine-stable \
         wine32 \
         "
-    UPDATE_APT=1
 elif [ "$MINGW" == "64" ]; then
     INSTALL_PACKAGES="$INSTALL_PACKAGES \
         binutils-mingw-w64-x86-64 \
@@ -192,7 +204,7 @@ if [ "$WITH_DAV1D" = "1" ]; then
 fi
 
 if [ "$WITH_RAV1E" = "1" ]; then
-    cargo install --force cargo-c
+    cargo install --force cargo-c@0.9.14+cargo-0.66
 
     export PATH="$PATH:$HOME/.cargo/bin"
     cd third-party
