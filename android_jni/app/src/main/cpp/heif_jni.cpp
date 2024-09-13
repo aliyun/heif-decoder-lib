@@ -1,6 +1,6 @@
 
 #include <jni.h>
-#include "heif.h"
+#include "libheif/heif.h"
 #include <android/log.h>
 #include <cstring>
 #include <vector>
