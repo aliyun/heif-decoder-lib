@@ -1,0 +1,32 @@
+include(LibFindMacros)
+libfind_pkg_check_modules(LIBPNG_PKGCONF libpng)
+
+find_path(LIBPNG_INCLUDE_DIR
+    NAMES png.h
+    HINTS ${LIBPNG_PKGCONF_INCLUDE_DIRS} ${LIBPNG_PKGCONF_INCLUDEDIR}
+    PATH_SUFFIXES LIBPNG
+)
+
+find_library(LIBPNG_LIBRARY
+    NAMES libpng png
+    HINTS ${LIBPNG_PKGCONF_LIBRARY_DIRS} ${LIBPNG_PKGCONF_LIBDIR}
+)
+
+libfind_process(LIBPNG)
+
+set(LIBPNG_LINK_LIBRARIES ${LIBPNG_LIBRARY})
+set(LIBPNG_INCLUDE_DIRS ${LIBPNG_INCLUDE_DIR})
+
+#message(STATUS "xxx  LIBPNG_LIBRARY = ${LIBPNG_LIBRARY}")
+#message(STATUS "xxx  LIBPNG_INCLUDE_DIR = ${LIBPNG_INCLUDE_DIR}")
+#message(STATUS "xxx  LIBPNG_LINK_LIBRARIES = ${LIBPNG_LINK_LIBRARIES}")
+#message(STATUS "xxx  LIBPNG_INCLUDE_DIRS = ${LIBPNG_INCLUDE_DIRS}")
+
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(LIBPNG
+    REQUIRED_VARS
+        LIBPNG_INCLUDE_DIR
+        LIBPNG_LIBRARIES
+)
+

@@ -67,7 +67,7 @@ static gboolean stop_load(gpointer context, GError** error)
 {
   HeifPixbufCtx* hpc;
   struct heif_error err;
-  struct heif_context* hc;
+  struct heif_context* hc = NULL;
   struct heif_image_handle* hdl = NULL;
   struct heif_image* img = NULL;
   int width, height, stride;
@@ -78,6 +78,12 @@ static gboolean stop_load(gpointer context, GError** error)
 
   result = FALSE;
   hpc = (HeifPixbufCtx*) context;
+
+  err = heif_init(NULL);
+  if (err.code != heif_error_Ok) {
+    g_warning("%s", err.message);
+    goto cleanup;
+  }
 
   hc = heif_context_alloc();
   if (!hc) {
@@ -130,6 +136,23 @@ static gboolean stop_load(gpointer context, GError** error)
   pixbuf = gdk_pixbuf_new_from_data(data, GDK_COLORSPACE_RGB, has_alpha, 8, width, height, stride, release_heif_image,
                                     img);
 
+  size_t profile_size = heif_image_handle_get_raw_color_profile_size(hdl);
+  if(profile_size) {
+    guchar *profile_data = (guchar *)g_malloc0(profile_size);
+
+    err = heif_image_handle_get_raw_color_profile(hdl, profile_data);
+    if (err.code == heif_error_Ok) {
+      gchar *profile_base64 = g_base64_encode(profile_data, profile_size);
+      gdk_pixbuf_set_option(pixbuf, "icc-profile", profile_base64);
+      g_free(profile_base64);
+    }
+    else {
+      // Having no ICC profile is perfectly fine. Do not show any warning because of that.
+    }
+
+    g_free(profile_data);
+  }
+  
   if (hpc->prepare_func) {
     (*hpc->prepare_func)(pixbuf, NULL, hpc->user_data);
   }
@@ -161,6 +184,8 @@ static gboolean stop_load(gpointer context, GError** error)
 
   g_byte_array_free(hpc->data, TRUE);
   g_free(hpc);
+
+  heif_deinit();
 
   return result;
 }

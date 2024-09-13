@@ -23,17 +23,20 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 */
-#if defined(HAVE_CONFIG_H)
-#include "config.h"
-#endif
 
 #include <assert.h>
 #include <errno.h>
 #include <string.h>
 
-#include <iostream>
+#include <vector>
+#include <limits>
 
 #include "encoder_jpeg.h"
+#include "exif.h"
+
+#define JPEG_XMP_MARKER  (JPEG_APP0+1)  /* JPEG marker code for XMP */
+#define JPEG_XMP_MARKER_ID "http://ns.adobe.com/xap/1.0/"
+
 
 JpegEncoder::JpegEncoder(int quality) : quality_(quality)
 {
@@ -46,7 +49,7 @@ void JpegEncoder::UpdateDecodingOptions(const struct heif_image_handle* handle,
                                         struct heif_decoding_options* options) const
 {
   if (HasExifMetaData(handle)) {
-    options->ignore_transformations = 1;
+    options->ignore_transformations = 0;
   }
 
   options->convert_hdr_to_8bit = 1;
@@ -165,6 +168,8 @@ bool JpegEncoder::Encode(const struct heif_image_handle* handle,
   static const boolean kWriteAllTables = TRUE;
   jpeg_start_compress(&cinfo, kWriteAllTables);
 
+  // --- Write EXIF
+
   size_t exifsize = 0;
   uint8_t* exifdata = GetExifMetaData(handle, &exifsize);
   if (exifdata) {
@@ -172,15 +177,47 @@ bool JpegEncoder::Encode(const struct heif_image_handle* handle,
       static const uint8_t kExifMarker = JPEG_APP0 + 1;
 
       uint32_t skip = (exifdata[0]<<24) | (exifdata[1]<<16) | (exifdata[2]<<8) | exifdata[3];
-      if (skip>=6) {
-        skip = 4 + skip-6;
+      if (skip > (exifsize - 4)) {
+        fprintf(stderr, "Invalid EXIF data (offset too large)\n");
+        free(exifdata);
+        jpeg_destroy_compress(&cinfo);
+        fclose(fp);
+        return false;
       }
-      else {
-        skip = 4;
-      }
+      skip += 4;
 
       uint8_t* ptr = exifdata + skip;
       size_t size = exifsize - skip;
+
+      if (size > std::numeric_limits<uint32_t>::max()) {
+        fprintf(stderr, "EXIF larger than 4GB is not supported");
+        free(exifdata);
+        jpeg_destroy_compress(&cinfo);
+        fclose(fp);
+        return false;
+      }
+
+      auto size32 = static_cast<uint32_t>(size);
+
+      // libheif by default normalizes the image orientation, so that we have to set the EXIF Orientation to "Horizontal (normal)"
+      modify_exif_orientation_tag_if_it_exists(ptr, size32, 1);
+
+      // We have to limit the size for the memcpy, otherwise GCC warns that we exceed the maximum size.
+      if (size>0x1000000) {
+        size = 0x1000000;
+      }
+
+      std::vector<uint8_t> jpegExifMarkerData(6+size);
+      memcpy(jpegExifMarkerData.data()+6, ptr, size);
+      jpegExifMarkerData[0]='E';
+      jpegExifMarkerData[1]='x';
+      jpegExifMarkerData[2]='i';
+      jpegExifMarkerData[3]='f';
+      jpegExifMarkerData[4]=0;
+      jpegExifMarkerData[5]=0;
+
+      ptr = jpegExifMarkerData.data();
+      size = jpegExifMarkerData.size();
 
       while (size > MAX_BYTES_IN_MARKER) {
         jpeg_write_marker(&cinfo, kExifMarker, ptr,
@@ -197,6 +234,25 @@ bool JpegEncoder::Encode(const struct heif_image_handle* handle,
     free(exifdata);
   }
 
+  // --- Write XMP
+
+  // spec: https://raw.githubusercontent.com/adobe/xmp-docs/master/XMPSpecifications/XMPSpecificationPart3.pdf
+
+  auto xmp = get_xmp_metadata(handle);
+  if (xmp.size() > 65502) {
+    fprintf(stderr, "XMP data too large, ExtendedXMP is not supported yet.\n");
+  }
+  else if (!xmp.empty()) {
+    std::vector<uint8_t> xmpWithId;
+    xmpWithId.resize(xmp.size() + strlen(JPEG_XMP_MARKER_ID)+1);
+    strcpy((char*)xmpWithId.data(), JPEG_XMP_MARKER_ID);
+    memcpy(xmpWithId.data() + strlen(JPEG_XMP_MARKER_ID) + 1, xmp.data(), xmp.size());
+
+    jpeg_write_marker(&cinfo, JPEG_XMP_MARKER, xmpWithId.data(), static_cast<unsigned int>(xmpWithId.size()));
+  }
+
+  // --- Write ICC
+
   size_t profile_size = heif_image_handle_get_raw_color_profile_size(handle);
   if (profile_size > 0) {
     uint8_t* profile_data = static_cast<uint8_t*>(malloc(profile_size));
@@ -208,6 +264,8 @@ bool JpegEncoder::Encode(const struct heif_image_handle* handle,
 
   if (heif_image_get_bits_per_pixel(image, heif_channel_Y) != 8) {
     fprintf(stderr, "JPEG writer cannot handle image with >8 bpp.\n");
+    jpeg_destroy_compress(&cinfo);
+    fclose(fp);
     return false;
   }
 
