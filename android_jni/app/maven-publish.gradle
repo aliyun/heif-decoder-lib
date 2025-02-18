@@ -1,0 +1,71 @@
+
+
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId "com.aliyun"
+            artifactId "libheif"
+            version "1.0.0"
+
+            artifact("$buildDir/outputs/aar/app-release.aar")
+
+            pom {
+                name = 'com.aliyun:libheif'
+                description = 'Aliyun Open SDK for Java\nCopyright (C) Alibaba Cloud Computing\nAll rights reserved.\n版权所有 （C）阿里云计算有限公司\nhttp://www.aliyun.com'
+                url = 'http://www.aliyun.com'
+                licenses {
+                    license {
+                        name = 'GNU LESSER GENERAL PUBLIC LICENSE'
+                        url = 'https://www.gnu.org/licenses/licenses.html'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'aliyunproducts'
+                        name = 'Aliyun SDK'
+                        email = 'aliyunsdk@aliyun.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git@github.com:aliyun/heif-decoder-lib.git'
+                    developerConnection = 'scm:git:git@github.com:aliyun/heif-decoder-lib.git'
+                    url = 'https://github.com/aliyun/heif-decoder-lib'
+                }
+
+                withXml {
+                    def dependenciesNode = asNode().appendNode('dependencies')
+                    project.configurations.all { configuration ->
+                        def name = configuration.name
+                        if (name != "implementation" && name != "compile" && name != "api") {
+                            return
+                        }
+                        println(configuration)
+                        configuration.dependencies.each {
+                            println(it)
+                            if (it.name == "unspecified" || it.version == 'unspecified') {
+                                // 忽略无法识别的
+                                return
+                            }
+                            def dependencyNode = dependenciesNode.appendNode('dependency')
+                            dependencyNode.appendNode('groupId', it.group)
+                            dependencyNode.appendNode('artifactId', it.name)
+                            dependencyNode.appendNode('version', it.version)
+                            if (name == "api" || name == "compile") {
+                                dependencyNode.appendNode("scope", "compile")
+                            } else { // implementation
+                                dependencyNode.appendNode("scope", "runtime")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications
+}
