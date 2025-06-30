@@ -31,7 +31,7 @@
 #define LIBHEIF_NUMERIC_VERSION ((1<<24) | (18<<16) | (0<<8) | 0)
 
 /* Version string */
-#define LIBHEIF_VERSION "1.18.0"
+#define LIBHEIF_VERSION "1.18.0b"
 
 #define LIBHEIF_PLUGIN_DIRECTORY "/Users/qianchao.cw/Documents/project/06_storage_service/002_Dec/heif_git/CrossCompAndroid/lib/libheif/lib/libheif"
 

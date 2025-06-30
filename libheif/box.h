@@ -190,6 +190,33 @@ public:
 
   std::vector<std::shared_ptr<Box>> get_child_boxes(uint32_t short_type) const;
 
+  template<typename T> [[nodiscard]] std::shared_ptr<T> get_child_box() const
+  {
+    // TODO: we could remove the dynamic_cast<> by adding the fourcc type of each Box
+    //       as a "constexpr uint32_t Box::short_type", compare to that and use static_cast<>
+    for (auto& box : m_children) {
+      if (auto typed_box = std::dynamic_pointer_cast<T>(box)) {
+        return typed_box;
+      }
+    }
+
+    return nullptr;
+  }
+
+  template<typename T>
+  std::vector<std::shared_ptr<T>> get_child_boxes() const
+  {
+    std::vector<std::shared_ptr<T>> result;
+    for (auto& box : m_children) {
+      if (auto typed_box = std::dynamic_pointer_cast<T>(box)) {
+        result.push_back(typed_box);
+      }
+    }
+
+    return result;
+  }
+
+
   template<typename T>
   std::vector<std::shared_ptr<T>> get_typed_child_boxes(uint32_t short_type) const
   {
@@ -213,6 +240,7 @@ public:
 
   static bool equal(const std::shared_ptr<Box>& box1, const std::shared_ptr<Box>& box2);
 
+  void set_output_position(uint64_t pos) { m_output_position = pos; }
 
 protected:
   virtual Error parse(BitstreamRange& range);
@@ -220,6 +248,11 @@ protected:
   std::vector<std::shared_ptr<Box>> m_children;
 
   const static int READ_CHILDREN_ALL = -1;
+
+  const static uint64_t INVALID_POSITION = 0xFFFFFFFFFFFFFFFF;
+
+  uint64_t m_input_position = INVALID_POSITION;
+  uint64_t m_output_position = INVALID_POSITION;
 
   Error read_children(BitstreamRange& range, int number = READ_CHILDREN_ALL);
 

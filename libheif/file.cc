@@ -57,7 +57,10 @@
 #define STRICT_PARSING false
 
 
-HeifFile::HeifFile() = default;
+HeifFile::HeifFile()
+{
+  m_file_layout = std::make_shared<FileLayout>();
+}
 
 HeifFile::~HeifFile() = default;
 
@@ -109,7 +112,22 @@ Error HeifFile::read_from_file(const char* input_filename)
   }
 
   auto input_stream = std::make_shared<StreamReader_istream>(std::move(input_stream_istr));
-  return read(input_stream);
+  Error err = read(input_stream);
+
+  if(err.error_code != heif_error_Ok) {
+
+    new_empty_file();
+
+#if defined(__MINGW32__) || defined(__MINGW64__) || defined(_MSC_VER)
+    auto new_input_stream_istr = std::unique_ptr<std::istream>(new std::ifstream(convert_utf8_path_to_utf16(input_filename).c_str(), std::ios_base::binary));
+#else
+    auto new_input_stream_istr = std::unique_ptr<std::istream>(new std::ifstream(input_filename, std::ios_base::binary));
+#endif
+    auto new_input_stream = std::make_shared<StreamReader_istream>(std::move(new_input_stream_istr));
+    return read_box(new_input_stream);
+  }
+
+  return err;
 }
 
 
@@ -117,7 +135,15 @@ Error HeifFile::read_from_memory(const void* data, size_t size, bool copy)
 {
   auto input_stream = std::make_shared<StreamReader_memory>((const uint8_t*) data, size, copy);
 
-  return read(input_stream);
+  Error err = read(input_stream);
+
+  if(err.error_code != heif_error_Ok) {
+      new_empty_file();
+      auto new_input_stream = std::make_shared<StreamReader_memory>((const uint8_t*) data, size, copy);
+      return read_box(new_input_stream);
+  }
+
+  return err;
 }
 
 
@@ -181,6 +207,35 @@ void HeifFile::add_movie_box()
 
   m_iloc_box->set_moov_flag(true);
 }
+
+
+Error HeifFile::read_box(const std::shared_ptr<StreamReader>& reader)
+{
+  /*
+  m_input_stream = reader;
+
+  uint64_t maxSize = std::numeric_limits<int64_t>::max();
+  BitstreamRange range(m_input_stream, maxSize);
+
+  Error error = parse_heif_file(range);
+  return error;
+  */
+
+//   assert(m_limits);
+
+  m_input_stream = reader;
+
+  Error err;
+  err = m_file_layout->read(reader);
+  if (err) {
+    return err;
+  }
+
+  Error error = parse_heif_file_box();
+  return error;
+
+}
+
 
 void HeifFile::new_empty_file()
 {
@@ -589,6 +644,180 @@ Error HeifFile::parse_heif_file(BitstreamRange& range)
   return Error::Ok;
 }
 
+
+Error HeifFile::parse_heif_file_box()
+{
+  // --- read all top-level boxes
+
+#if 0
+  for (;;) {
+    std::shared_ptr<Box> box;
+    Error error = Box::read(range, &box);
+
+    if (range.error() || range.eof()) {
+      break;
+    }
+
+    // When an EOF error is returned, this is not really a fatal exception,
+    // but simply the indication that we reached the end of the file.
+    // TODO: this design should be cleaned up
+    if (error.error_code == heif_error_Invalid_input && error.sub_error_code == heif_suberror_End_of_data) {
+      break;
+    }
+
+    if (error != Error::Ok) {
+      return error;
+    }
+
+    m_top_level_boxes.push_back(box);
+
+
+    // extract relevant boxes (ftyp, meta)
+
+    if (box->get_short_type() == fourcc("meta")) {
+      m_meta_box = std::dynamic_pointer_cast<Box_meta>(box);
+    }
+
+    if (box->get_short_type() == fourcc("ftyp")) {
+      m_ftyp_box = std::dynamic_pointer_cast<Box_ftyp>(box);
+    }
+  }
+#endif
+
+  m_ftyp_box = m_file_layout->get_ftyp_box();
+  if (!m_ftyp_box) {
+    return Error(heif_error_Invalid_input,
+                 heif_suberror_No_ftyp_box);
+  }
+
+  m_top_level_boxes.push_back(m_ftyp_box);
+
+  // --- check whether this is a HEIF file and its structural format
+
+  if (!m_ftyp_box->has_compatible_brand(heif_brand2_heic) &&
+      !m_ftyp_box->has_compatible_brand(heif_brand2_heix) &&
+      !m_ftyp_box->has_compatible_brand(heif_brand2_mif1) &&
+      !m_ftyp_box->has_compatible_brand(heif_brand2_avif) &&
+      !m_ftyp_box->has_compatible_brand(heif_brand2_1pic) &&
+#if ENABLE_EXPERIMENTAL_MINI_FORMAT
+      !(m_ftyp_box->get_major_brand() == heif_brand2_mif3) &&
+#endif
+      !m_ftyp_box->has_compatible_brand(heif_brand2_jpeg)) {
+    std::stringstream sstr;
+    sstr << "File does not include any supported brands.\n";
+
+    return Error(heif_error_Unsupported_filetype,
+                 heif_suberror_Unspecified,
+                 sstr.str());
+  }
+
+#if ENABLE_EXPERIMENTAL_MINI_FORMAT
+  m_mini_box = m_file_layout->get_mini_box();
+  m_top_level_boxes.push_back(m_mini_box);
+
+  if (m_mini_box) {
+    Error err = m_mini_box->create_expanded_boxes(this);
+    if (err) {
+      return err;
+    }
+    return Error::Ok;
+  }
+#endif
+
+  m_meta_box = m_file_layout->get_meta_box();
+  m_top_level_boxes.push_back(m_meta_box);
+  // TODO: we are missing 'mdat' top level boxes
+
+  // if we didn't find the mini box, meta is required
+
+  if (!m_meta_box) {
+    return Error(heif_error_Invalid_input,
+                 heif_suberror_No_meta_box);
+  }
+
+
+  m_hdlr_box = m_meta_box->get_child_box<Box_hdlr>();
+  if (STRICT_PARSING && !m_hdlr_box) {
+    return Error(heif_error_Invalid_input,
+                 heif_suberror_No_hdlr_box);
+  }
+
+  if (m_hdlr_box &&
+      m_hdlr_box->get_handler_type() != fourcc("pict")) {
+    return Error(heif_error_Invalid_input,
+                 heif_suberror_No_pict_handler);
+  }
+
+
+  // --- find mandatory boxes needed for image decoding
+
+  m_pitm_box = m_meta_box->get_child_box<Box_pitm>();
+  if (!m_pitm_box) {
+    return Error(heif_error_Invalid_input,
+                 heif_suberror_No_pitm_box);
+  }
+
+  m_iprp_box = m_meta_box->get_child_box<Box_iprp>();
+  if (!m_iprp_box) {
+    return Error(heif_error_Invalid_input,
+                 heif_suberror_No_iprp_box);
+  }
+
+  m_ipco_box = m_iprp_box->get_child_box<Box_ipco>();
+  if (!m_ipco_box) {
+    return Error(heif_error_Invalid_input,
+                 heif_suberror_No_ipco_box);
+  }
+
+  auto ipma_boxes = m_iprp_box->get_child_boxes<Box_ipma>();
+  if (ipma_boxes.empty()) {
+    return Error(heif_error_Invalid_input,
+                 heif_suberror_No_ipma_box);
+  }
+  for (size_t i=1;i<ipma_boxes.size();i++) {
+    ipma_boxes[0]->insert_entries_from_other_ipma_box(*ipma_boxes[i]);
+  }
+  m_ipma_box = ipma_boxes[0];
+
+  m_iloc_box = m_meta_box->get_child_box<Box_iloc>();
+  if (!m_iloc_box) {
+    return Error(heif_error_Invalid_input,
+                 heif_suberror_No_iloc_box);
+  }
+
+  m_idat_box = m_meta_box->get_child_box<Box_idat>();
+
+  m_iref_box = m_meta_box->get_child_box<Box_iref>();
+  if (m_iref_box) {
+    Error error = check_for_ref_cycle(get_primary_image_ID(), m_iref_box);
+    if (error) {
+      return error;
+    }
+  }
+
+  m_iinf_box = m_meta_box->get_child_box<Box_iinf>();
+  if (!m_iinf_box) {
+    return Error(heif_error_Invalid_input,
+                 heif_suberror_No_iinf_box);
+  }
+
+//   m_grpl_box = m_meta_box->get_child_box<Box_grpl>();
+
+  // --- build list of images
+
+  std::vector<std::shared_ptr<Box_infe>> infe_boxes = m_iinf_box->get_child_boxes<Box_infe>();
+
+  for (auto& infe_box : infe_boxes) {
+    if (!infe_box) {
+      return Error(heif_error_Invalid_input,
+                   heif_suberror_No_infe_box);
+    }
+
+    m_infe_boxes.insert(std::make_pair(infe_box->get_item_ID(), infe_box));
+  }
+
+  return Error::Ok;
+}
 
 Error HeifFile::check_for_ref_cycle(heif_item_id ID,
                                     const std::shared_ptr<Box_iref>& iref_box) const

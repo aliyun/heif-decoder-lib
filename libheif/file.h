@@ -27,6 +27,7 @@
 #include "codecs/hevc.h"
 #include "codecs/vvc.h"
 #include "codecs/uncompressed_box.h"
+#include "file_layout.h"
 
 #include <map>
 #include <memory>
@@ -56,6 +57,8 @@ public:
   ~HeifFile();
 
   Error read(const std::shared_ptr<StreamReader>& reader);
+
+  Error read_box(const std::shared_ptr<StreamReader>& reader);
 
   Error read_from_file(const char* input_filename);
 
@@ -274,6 +277,8 @@ private:
   mutable std::mutex m_read_mutex;
 #endif
 
+  std::shared_ptr<FileLayout> m_file_layout;
+
   std::shared_ptr<StreamReader> m_input_stream;
 
   std::vector<std::shared_ptr<Box> > m_top_level_boxes;
@@ -322,6 +327,8 @@ private:
 
 
   Error parse_heif_file(BitstreamRange& bitstream);
+
+  Error parse_heif_file_box();
 
   Error check_for_ref_cycle(heif_item_id ID,
                             const std::shared_ptr<Box_iref>& iref_box) const;
