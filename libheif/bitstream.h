@@ -32,6 +32,7 @@
 #include <string>
 
 #include "error.h"
+#include <algorithm>
 
 
 class StreamReader
@@ -60,6 +61,11 @@ public:
   {
     return seek(get_position() + position_offset);
   }
+
+  virtual uint64_t request_range(uint64_t start, uint64_t end_pos) {
+    return std::numeric_limits<uint64_t>::max();
+  }
+
 };
 
 
@@ -75,6 +81,11 @@ public:
   bool read(void* data, size_t size) override;
 
   bool seek(int64_t position) override;
+
+  uint64_t request_range(uint64_t start, uint64_t end_pos) override {
+    // std::cout << "[istream] request_range " << start << " - " << end_pos << "\n";
+    return std::min((int64_t)end_pos, m_length);
+  }
 
 private:
   std::unique_ptr<std::istream> m_istr;
@@ -97,6 +108,11 @@ public:
 
   bool seek(int64_t position) override;
 
+  // end_pos is last byte to read + 1. I.e. like a file size.
+  uint64_t request_range(uint64_t start, uint64_t end_pos) override {
+    return m_length;
+  }
+  
 private:
   const uint8_t* m_data;
   int64_t m_length;
@@ -134,6 +150,10 @@ public:
   BitstreamRange(std::shared_ptr<StreamReader> istr,
                  size_t length,
                  BitstreamRange* parent = nullptr);
+
+  BitstreamRange(std::shared_ptr<StreamReader> istr,
+                  size_t start,
+                  size_t end); // one past end
 
   // This function tries to make sure that the full data of this range is
   // available. You should call this before starting reading the range.
