@@ -11,7 +11,7 @@ publishing {
         mavenJava(MavenPublication) {
             groupId "com.aliyun"
             artifactId "libheif"
-            version "1.0.0"
+            version "1.0.1"
 
             artifact("$buildDir/outputs/aar/app-release.aar")
 
