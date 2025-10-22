@@ -8,7 +8,9 @@ apply from: 'maven-publish.gradle'
 
 
 android {
+    namespace "com.aliyun.imm.libheif"
     compileSdk 32
+    ndkVersion "28.2.13676358"
 
     defaultConfig {
 //        applicationId "com.aliyun.imm.libheif"
