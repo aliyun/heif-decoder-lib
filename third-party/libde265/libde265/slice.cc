@@ -5135,7 +5135,7 @@ enum DecodeResult decode_substream_sequential(thread_context* tctx,
       bool end_of_sub_stream = false;
       end_of_sub_stream |= (pps.tiles_enabled_flag &&
                             pps.TileId[tctx->CtbAddrInTS] != pps.TileId[tctx->CtbAddrInTS-1]);
-      end_of_sub_stream |= (pps.entropy_coding_sync_enabled_flag &&
+      end_of_sub_stream |= (pps.entropy_coding_sync_enabled_flag && entry_point_size > 0 &&
                             lastCtbY != tctx->CtbY);
 
       if (end_of_sub_stream) {
@@ -5335,7 +5335,9 @@ enum DecodeResult decode_substream(thread_context* tctx,
           tctx->img->integrity = INTEGRITY_DECODING_ERRORS;
           return Decode_Error;
         }
-        //init_CABAC_decoder_2(&tctx->cabac_decoder);
+#ifndef OPT_CABAC
+        init_CABAC_decoder_2(0, &tctx->cabac_decoder);
+#endif
         return Decode_EndOfSubstream;
       }
     }
