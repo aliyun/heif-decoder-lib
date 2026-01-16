@@ -63,5 +63,14 @@ class HeifNative {
          */
         @JvmStatic
         external fun getInfo(info: HeifInfo, length: Long, filebuf: ByteArray?): Boolean
+
+        /**
+         * get ICC profile content from heic picture
+         * @param length  the length of effective file memory
+         * @param filebuf file pointer in memory
+         * @return byte array containing ICC profile information, null if no ICC profile exists
+         */
+        @JvmStatic
+        external fun getRawIcc(length: Long, filebuf: ByteArray?): ByteArray?
     }
 }
