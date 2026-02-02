@@ -77,7 +77,7 @@ add_definitions(-DOPT_1)
 add_definitions(-DOPT_2)
 add_definitions(-DOPT_3)
 add_definitions(-DOPT_4)
-# add_definitions(-DOPT_CABAC)
+add_definitions(-DOPT_CABAC)
 #add_definitions(-DOPT_CABAC_BYPASS)
 add_definitions(-DOPT_RESIDUAL_CODING)
 
