@@ -512,7 +512,7 @@ void scale_coefficients_internal(thread_context* tctx,
       const uint8_t* sclist;
       int matrixID = cIdx;
 
-      if(nT==32) {
+      if (nT==32) {
         matrixID=0;
       }
 
