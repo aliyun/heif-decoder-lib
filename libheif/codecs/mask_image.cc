@@ -100,7 +100,9 @@ Error MaskImageCodec::decode_mask_image(const HeifContext* context,
                  "Unsupported bit depth for mask item");
   }
 
-  if (data.size() < width * height) {
+  uint32_t bytes_per_pixel = (mskC->get_bits_per_pixel() + 7) / 8;
+
+  if (data.size() / (static_cast<size_t>(width) * bytes_per_pixel) < height) {
     return {heif_error_Invalid_input,
             heif_suberror_Unspecified,
             "Mask image data is too short"};
@@ -111,14 +113,14 @@ Error MaskImageCodec::decode_mask_image(const HeifContext* context,
   img->add_plane(heif_channel_Y, width, height, mskC->get_bits_per_pixel());
   int stride;
   uint8_t* dst = img->get_plane(heif_channel_Y, &stride);
-  if (((uint32_t)stride) == width) {
-    memcpy(dst, data.data(), data.size());
+  if (((uint32_t)stride) == width * bytes_per_pixel) {
+    memcpy(dst, data.data(), static_cast<size_t>(width) * bytes_per_pixel * height);
   }
   else
   {
     for (uint32_t i = 0; i < height; i++)
     {
-      memcpy(dst + i * stride, data.data() + i * width, width);
+      memcpy(dst + i * stride, data.data() + i * width * bytes_per_pixel, width * bytes_per_pixel);
     }
   }
   return Error::Ok;
